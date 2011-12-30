@@ -1,0 +1,29 @@
+@CHARSET "UTF-8";
+.reel_select li{
+	float:left;
+	margin:10px;
+	width:130px;
+	height:150px;
+	overflow:hidden;
+	background-color:#ccc;
+}
+.reel_select li.selected{
+	background-color:#999;
+}
+.reel_select li p, .reel_select li h4{
+	margin:0;
+}
+#simian_reel_hover{
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:130px;
+	background:#cccc00;
+	display:none;
+}
+#simian_reel_hover h1{
+	margin:0;
+}
+#simian_reel_hover p{
+	margin:0;
+}
