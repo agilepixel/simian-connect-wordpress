@@ -1,5 +1,5 @@
 //QT posters
-if (typeof(QTP) != "undefined") { 
+if (typeof(QTP) != "undefined" && typeof(QTP.Poster) != "undefined") { 
 QTP.Poster.prototype.clickText = "Click To Play";
 }
 
