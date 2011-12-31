@@ -1,16 +1,51 @@
-//testing
+//QT posters
+if (typeof(QTP) != "undefined") { 
+QTP.Poster.prototype.clickText = "Click To Play";
+}
+
+//reel movie loading
 var $j = jQuery.noConflict();
+
 $j(document).ready(function() {
+
 	$j('.reelPlayer ul a').click(function(){
-		console.log($j(this).attr('href'));
-		$j(this).parent('ul').siblings('object').remove();
-		$j(this).parent('ul').parent('div').prepend(htmlembed($j(this).attr('href'),640,360));
-		$j(this).parent('ul').parent('div').siblings('.mediaTitle').html($j(this).children('img').first().attr('title'));
+	
+		//console.log($j(this).attr('href'));
+		
+		var $p = $j(this).parent('ul');
+		$p.siblings('object').remove();
+		
+		$p.parent('div').prepend(qtEmbed($j(this).attr('href'),640,360));
+		
+		$p.parent('div').siblings('.mediaTitle').html($j(this).children('img').first().attr('title'));
+		
 		return false;
 	});
 	
 	
 });
+
+function qtEmbed($dom_id,$src,$width,$height){
+
+	//$j(document).ready(function(){
+	
+	if (typeof(QT) != "undefined") { 
+	
+		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '','scale','tofit');
+		
+		//console.log($($dom_id));
+		
+		$($dom_id).replace($new);
+		
+	} else {
+	
+		console.log(QT);
+	
+	}
+	
+	//});
+
+}
 
 function htmlembed(url,width,height){
 	
