@@ -1,3 +1,5 @@
+
+
 //QT posters
 if (typeof(QTP) != "undefined" && typeof(QTP.Poster) != "undefined") { 
 QTP.Poster.prototype.clickText = "Click To Play";
@@ -8,16 +10,18 @@ var $j = jQuery.noConflict();
 
 $j(document).ready(function() {
 
-	$j('.reelPlayer ul a').click(function(){
+	$j('ul.reelList').on('click','a',function() {
 	
-		//console.log($j(this).attr('href'));
+		$reel_id = $j(this).attr('rel');
+		$p = $j("#"+$reel_id);
 		
-		var $p = $j(this).parent('ul');
-		$p.siblings('object').remove();
+		$m = $j("<div />").attr('id', $reel_id +"_mov");
 		
-		$p.parent('div').prepend(qtEmbed($j(this).attr('href'),640,360));
+		$p.find('div.reelVideo').empty().append($m);
 		
-		$p.parent('div').siblings('.mediaTitle').html($j(this).children('img').first().attr('title'));
+		qtEmbed($reel_id +"_mov",$j(this).attr('href'),640,360,"true");
+		
+		$p.find('.mediaTitle').html($j(this).children('img').first().attr('title'));
 		
 		return false;
 	});
@@ -25,15 +29,13 @@ $j(document).ready(function() {
 	
 });
 
-function qtEmbed($dom_id,$src,$width,$height){
+function qtEmbed($dom_id,$src,$width,$height,$autostart){
 
 	//$j(document).ready(function(){
 	
 	if (typeof(QT) != "undefined") { 
 	
-		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '','scale','tofit');
-		
-		//console.log($($dom_id));
+		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '','scale','tofit', 'autostart',$autostart);
 		
 		$($dom_id).replace($new);
 		

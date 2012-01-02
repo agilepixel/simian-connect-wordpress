@@ -378,8 +378,8 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 		
 		$html .= "</div>\n";
 		
-		$html .= "<h2 class=\"reelTitle\">".$return->reel->name."</h2>";
-		$html .= "<h3 class=\"mediaTitle\">".$return->media[0]->title."</h3>";
+		$html .= "<h2 class=\"reelTitle\">".$result->reel_title."</h2>";
+		$html .= "<h3 class=\"mediaTitle\">".$medialist[0]->media_title."</h3>";
 		
 		
 		if(get_option('simian_default_showreel')){
@@ -388,7 +388,7 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 		$html .= "<ul class=\"reelList\">\n";
 		foreach($medialist as $mediaitem){
 			$html .= "<li>";
-			$html .= "<a href=\"".$mediaitem->media_url."\" title=\"".$dom_id."_mov\">";
+			$html .= "<a href=\"".$mediaitem->media_url."\" rel=\"".$dom_id."\">";
 			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$mediaitem->media_thumb."\" />";
 			$html .= "</a>";
 			$html .= "</li>\n";
@@ -426,7 +426,7 @@ function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height){
 		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
 		
 		$html .= "<script type=\"text/javascript\">";
-		$html .= "qtEmbed('".$dom_id."','".$mediaurl."','".$width."','".$height."', '','scale','tofit');";
+		$html .= "qtEmbed('".$dom_id."','".$mediaurl."','".$width."','".$height."', 'false');";
 		$html .= "</script>";
 		
 	}
