@@ -25,9 +25,10 @@ add_action('admin_init', 'simian_settings_init');
 //$wpdb->show_errors();
 
 function simian_menu() {
-	add_menu_page(__('Simian'), __('Simian'), "manage_options", "simian_connect","simian_config",plugins_url( 'media/simian-icon-16.png' , __FILE__ ));
-	add_submenu_page('simian_connect',__('Simian Connect Configuration'),__('Simian Options'),'manage_options', 'simian-connect-config', 'simian_client_config');
-	add_submenu_page('simian_connect',__('Simian Cache'),__('Cache Reels'),'manage_options', 'simian-cache-run', 'simian_cache_page');
+	add_menu_page(__('Simian Connect'), __('Simian Connect'), "manage_options", "simian_connect","simian_client_config",plugins_url( 'media/simian-icon-16.png' , __FILE__ ));
+	
+	add_submenu_page('simian_connect',__('Simian Connect'),__('Reel Cache'),'manage_options', 'simian-cache-run', 'simian_cache_page');
+	add_submenu_page('simian_connect',__('Simian Connect'),__('Debug'),'manage_options', 'simian-connect-config', 'simian_config');
 }
 
 function simian_config() {
@@ -35,7 +36,7 @@ function simian_config() {
 	$html = "";
 	
 	$html .= '<div class="wrap">';
-	$html .= '<h2>Quick Debug</h2>';
+	$html .= '<h2>Simian Connect Debug</h2>';
 	$html .= '</div>';
 
 	//function checks
@@ -69,7 +70,7 @@ function simian_cache_page(){
 	$html = "";
 	
 	$html .= '<div class="wrap">';
-	$html .= '<h2>Simian Reel Cache</h2>';
+	$html .= '<h2>Simian Connect Reel Cache</h2>';
 	$html .= '</div>';
 	
 	$html .= '<form id="simianCacheForm" method="post" action="#">';
@@ -190,7 +191,7 @@ function simian_ajax_get_reel() {
 function simian_client_config(){
 
 	echo '<div class="wrap">';
-	echo '<h2>Simian Configuration</h2>';
+	echo '<h2>Simian Connect Configuration</h2>';
 
 	$changes = false;
 
