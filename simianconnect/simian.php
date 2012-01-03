@@ -218,10 +218,18 @@ function simian_client_config(){
 	}
 	
 	if(isset($_POST['showReelList'])){
-		update_option('simian_default_showreel', $_POST['showReelList']);
+		update_option('simian_default_showreel', 1);
 		$changes = true;
 	} else {
 		update_option('simian_default_showreel', 0);
+		$changes = true;
+	}
+	
+	if(isset($_POST['showPoster'])){
+		update_option('simian_default_showposters', 1);
+		$changes = true;
+	} else {
+		update_option('simian_default_showposters', 0);
 		$changes = true;
 	}
 
@@ -250,12 +258,12 @@ function simian_client_config(){
 			<tr valign="top">
 			<th scope="row"><label for="simianDefaultWidth">Default Video Width</label></th>
 			<td><input name="simianDefaultWidth" type="text" id="simianDefaultWidth" value="'.get_option('simian_default_width').'" class="regular-text" />
-			<span class="description">px (e.g. 640)</span></td>
+			<span class="description">px (e.g. 640). Set to 0 to use real video size.</span></td>
 			</tr>
 			<tr valign="top">
 			<th scope="row"><label for="simianDefaultHeight">Default Video Height</label></th>
 			<td><input name="simianDefaultHeight" type="text" id="simianDefaultHeight" value="'.get_option('simian_default_height').'" class="regular-text" />
-			<span class="description">px (e.g. 480)</span></td>
+			<span class="description">px (e.g. 480). Set to 0 to use real video size.</span></td>
 			</tr>
 			
 			<th scope="row"><label for="showReelList">Show Reel List</label></th>
@@ -345,10 +353,17 @@ function simianwreel_process( $atts, $type ) {
 		else { $width = $d_width; }
 		
 		//poster
-		$poster = true;
 		$poster = get_option('simian_default_showposters');
-		if(isset($atts['poster']) && $atts['poster'] == "show"){ $poster = "true"; }
 		
+		if($poster === "1"){ $poster = true; }
+		else if($poster === "0"){ $poster = false; }
+		
+		if(isset($atts['poster'])){
+		
+			if($atts['poster'] == "show"){	$poster = true; }
+			if($atts['poster'] == "hide"){	$poster = false; }
+		 
+		}
 
 		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster);
 		
@@ -365,7 +380,7 @@ add_shortcode( 'scompanyreel', 'simiancreel_tag_func' );
 add_shortcode( 'swebreel', 'simianwreel_tag_func' );
 
 
-function simian_load_reel($reelid, $width, $height, $type="web"){
+function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 	
 	global $wpdb;
 	
@@ -399,7 +414,7 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 		$html .= "<div id=\"" . $dom_id . "\" class=\"reelPlayer\">";
 		$html .= "<div class=\"reelVideo\">";
 		
-		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height);
+		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height, $poster);
 		
 		$html .= "</div>\n";
 		
@@ -435,7 +450,7 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 	return $html;
 }
 
-function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height){
+function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height, $poster){
 
 	$dom_id = $dom_id . "_mov";
 	
@@ -445,7 +460,7 @@ function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height){
 
 	$html = "";
 	//poster
-	if(get_option('simian_default_showposters')){
+	if($poster === true){
 		
 		$html .= "<a href=\"".$movie_url."\" rel=\"qtposter\" jscontroller=\"false\"><img src=\"". $simian_url . $thumb."\" width=\"".$width."\" height=\"".$height."\" /></a>";
 	
