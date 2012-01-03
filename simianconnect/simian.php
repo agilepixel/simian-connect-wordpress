@@ -76,7 +76,8 @@ function simian_cache_page(){
 	$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
 	$html .= '</form>';
 	$html .= '<p id="simianCacheStatus">&nbsp</p>';
-
+	
+	echo $html;
 	
 }
 
@@ -107,7 +108,10 @@ function simian_ajax_select_reel() {
 function simian_get_reel($reelid){
 	
 	global $wpdb;
-	$ch = curl_init("http://".get_option('simian_client_company_id').".gosimian.com/v2/api/simian/get_reel");
+	
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com";
+	
+	$ch = curl_init($simian_url . "/v2/api/simian/get_reel");
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_id=".$reelid."&reel_type=web_reels");
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -142,15 +146,20 @@ function simian_get_reel($reelid){
 			$mediaitem->id,
 			$return->reel->id,
 			$mediaitem->title,
-			$mediaitem->thumbnail,
-			$mediaitem->media_file,
-			$mediaitem->media_file_mobile);
+			strip_url($mediaitem->thumbnail,$simian_url. "/assets/"),
+			strip_url($mediaitem->media_file,$simian_url. "/assets/"),
+			strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"));
 					
 			$wpdb->query($insertMedia);
 		}
 		return true;
 	}
 	
+}
+
+function strip_url($string, $url){
+
+	return str_ireplace($url,"",$string);
 }
 
 function simian_ajax_get_reel() {
@@ -179,7 +188,7 @@ function simian_ajax_get_reel() {
 function simian_client_config(){
 
 	echo '<div class="wrap">';
-	echo '<h2>API Options</h2>';
+	echo '<h2>Options</h2>';
 
 	$changes = false;
 
@@ -253,6 +262,11 @@ function simian_client_config(){
 			<td><input name="showReelList" id="showReelList" type="checkbox" value="1" class="code" ' . checked( 1, get_option('simian_default_showreel'), false ) . ' />
 			<span class="description">Show the Reel list by default in each tag</span></td>
 			</tr>
+			
+			<th scope="row"><label for="showPoster">Show poster?</label></th>
+			<td><input name="showPoster" id="showPoster" type="checkbox" value="1" class="code" ' . checked( 1, get_option('simian_default_showposters'), false ) . ' />
+			<span class="description">Poster frames can be used to stop auto loading of movies.</span></td>
+			</tr>
 
 			</tbody></table>';
 	echo '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Save Changes"></p>';
@@ -320,6 +334,7 @@ function simianwreel_process( $atts, $type ) {
 	$html = "error";
 	if(isset($atts['id'])){
 		
+		//width & height
 		$d_width = get_option('simian_default_width');
 		$d_height = get_option('simian_default_height');
 
@@ -328,8 +343,14 @@ function simianwreel_process( $atts, $type ) {
 		
 		if(isset($atts['width'])){ $width = intval($atts['width']); }
 		else { $width = $d_width; }
+		
+		//poster
+		$poster = true;
+		$poster = get_option('simian_default_showposters');
+		if(isset($atts['poster']) && $atts['poster'] == "show"){ $poster = "true"; }
+		
 
-		$html = simian_load_reel($atts['id'], $width, $height, $type);
+		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster);
 		
 	} else {
 		$html .= "[reel id not provided]";
@@ -345,7 +366,11 @@ add_shortcode( 'swebreel', 'simianwreel_tag_func' );
 
 
 function simian_load_reel($reelid, $width, $height, $type="web"){
+	
 	global $wpdb;
+	
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com". "/assets/";
+	
 	$html = "";
 
 	switch($type){
@@ -379,8 +404,7 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 		$html .= "</div>\n";
 		
 		$html .= "<h2 class=\"reelTitle\">".$result->reel_title."</h2>";
-		$html .= "<h3 class=\"mediaTitle\">".$medialist[0]->media_title."</h3>";
-		
+		$html .= "<h3 class=\"mediaTitle\">".$medialist[0]->media_title."</h3>";	
 		
 		if(get_option('simian_default_showreel')){
 		
@@ -388,8 +412,8 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 		$html .= "<ul class=\"reelList\">\n";
 		foreach($medialist as $mediaitem){
 			$html .= "<li>";
-			$html .= "<a href=\"".$mediaitem->media_url."\" rel=\"".$dom_id."\">";
-			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$mediaitem->media_thumb."\" />";
+			$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
+			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" />";
 			$html .= "</a>";
 			$html .= "</li>\n";
 		}
@@ -414,19 +438,23 @@ function simian_load_reel($reelid, $width, $height, $type="web"){
 function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height){
 
 	$dom_id = $dom_id . "_mov";
+	
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" .  "/assets/";
+	
+	$movie_url =  $simian_url . $mediaurl;
 
 	$html = "";
 	//poster
 	if(get_option('simian_default_showposters')){
 		
-		$html .= "<a href=\"".$mediaurl."\" rel=\"qtposter\" jscontroller=\"false\"><img src=\"".$thumb."\" width=\"".$width."\" height=\"".$height."\" /></a>";
+		$html .= "<a href=\"".$movie_url."\" rel=\"qtposter\" jscontroller=\"false\"><img src=\"". $simian_url . $thumb."\" width=\"".$width."\" height=\"".$height."\" /></a>";
 	
 	} else {
 
 		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
 		
 		$html .= "<script type=\"text/javascript\">";
-		$html .= "qtEmbed('".$dom_id."','".$mediaurl."','".$width."','".$height."', 'false');";
+		$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$width."','".$height."', 'false');";
 		$html .= "</script>";
 		
 	}
