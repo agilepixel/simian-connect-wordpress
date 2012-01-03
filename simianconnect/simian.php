@@ -1,9 +1,11 @@
 <?php
 /*
  Plugin Name: Simian Connect
- Description: Connector for Simian XML API
+ Plugin URI: http://thecodepharmacy.co.uk/simian-connect/
+ Description: Access all your Simian media and easily add them to your posts. Uses the Simian XML API.
  Version: 0.2
  Author: The Code Pharmacy
+ Author URI: http://thecodepharmacy.co.uk/
  License: Proprietary
  */
 
@@ -188,7 +190,7 @@ function simian_ajax_get_reel() {
 function simian_client_config(){
 
 	echo '<div class="wrap">';
-	echo '<h2>Options</h2>';
+	echo '<h2>Simian Configuration</h2>';
 
 	$changes = false;
 
@@ -243,7 +245,7 @@ function simian_client_config(){
 			<tr valign="top">
 			<th scope="row"><label for="simianAPI">Simian API</label></th>
 			<td><input name="simianAPI" type="text" id="simianAPI" value="'.get_option('simian_client_api_key').'" class="regular-text" />
-			<span class="description">Simian access key for XML API. Constact Simian support if not known.</span></td>
+			<span class="description">Simian access key for XML API. Contact Simian support if not known.</span></td>
 			</tr>
 			<tr valign="top">
 			<th scope="row"><label for="simianName">Simian Company Name</label></th>
