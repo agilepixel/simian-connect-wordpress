@@ -17,10 +17,19 @@
  */
 
 $simian_connect_version = "0.2";
-
+add_action('admin_init','simian_admin_init');
 add_action('admin_menu', 'simian_menu');
 add_action('admin_init', 'simian_settings_init');
+// init process for button control
+add_action('init', 'simian_addbuttons');
 
+add_action('wp_enqueue_scripts', 'simian_call_requires');
+
+add_action('wp_ajax_simian_ajax_get_reel', 'simian_ajax_get_reel');
+add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
+add_shortcode( 'scompanyreel', 'simiancreel_tag_func' );
+add_shortcode( 'swebreel', 'simianwreel_tag_func' );
+register_activation_hook(__FILE__,'simian_install');
 
 //$wpdb->show_errors();
 
@@ -125,9 +134,6 @@ function simian_cache_page(){
 	
 }
 
-add_action('wp_ajax_simian_ajax_get_reel', 'simian_ajax_get_reel');
-add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
-
 function simian_ajax_select_reel() {
 
 	global $wpdb;
@@ -166,7 +172,9 @@ function simian_get_reel($reelid){
 	$response = curl_exec($ch);
 	
 	if(!$return = simplexml_load_string($response)){
-		return false;	
+	
+		return false;
+		
 	} else {
 			
 		$return->reel->name = str_replace("'", "\\'", $return->reel->name);
@@ -206,6 +214,7 @@ function simian_get_reel($reelid){
 function strip_url($string, $url){
 
 	return str_ireplace($url,"",$string);
+
 }
 
 function simian_ajax_get_reel() {
@@ -353,7 +362,7 @@ function simian_addbuttons(){
 	// Add only in Rich Editor mode
 	if ( get_user_option('rich_editing') == 'true') {
 		add_filter("mce_external_plugins", "add_simian_tinymce_plugin");
-		add_filter('mce_buttons', 'register_simian_button');
+		add_filter('mce_buttons', 'register_simian_button');	
 	}
 }
 
@@ -368,12 +377,25 @@ function register_simian_button($buttons){
 function add_simian_tinymce_plugin($plugin_array){
 
 	$plugin_array['simianc'] = plugin_dir_url(__FILE__).'tinymce/editor_plugin.js';
+	$plugin_array['wpfullscreen'] = plugin_dir_url(__FILE__).'tinymce/editor_plugin.js';
 	return $plugin_array;
 
 }
 
-// init process for button control
-add_action('init', 'simian_addbuttons');
+function simian_call_requires(){
+
+	wp_enqueue_script('jquery');
+	
+	//wp_enqueue_script('swfobject');
+	//wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
+	
+	wp_enqueue_script('prototype');
+	wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
+	wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
+	wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
+	wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
+
+}
 
 function simiancreel_tag_func($atts){
 
@@ -418,17 +440,15 @@ function simianwreel_process($atts, $type){
 		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster);
 		
 	} else {
+	
 		$html .= "[reel id not provided]";
+	
 	}
 
 	return $html;
 
 
 }
-
-add_shortcode( 'scompanyreel', 'simiancreel_tag_func' );
-add_shortcode( 'swebreel', 'simianwreel_tag_func' );
-
 
 function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 	
@@ -605,13 +625,9 @@ function simian_db_upgrade(){
 	
 }
 
-register_activation_hook(__FILE__,'simian_install');
-
-
 function simian_client_import(){
 
 }
-
 
 function simian_new_media($data){
 	global $wpdb;
@@ -629,18 +645,6 @@ function simian_new_media($data){
 
 
 }
-wp_enqueue_script('jquery');
-
-//wp_enqueue_script('swfobject');
-//wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
-
-wp_enqueue_script('prototype');
-wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
-wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
-wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
-wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
-
-add_action('admin_init','simian_admin_init');
 
 function simian_admin_init(){
 
