@@ -3,7 +3,7 @@
  Plugin Name: Simian Connect
  Plugin URI: http://thecodepharmacy.co.uk/simian-connect/
  Description: Access all your Simian media and easily add them to your posts. Uses the Simian XML API.
- Version: 0.2
+ Version: 0.3
  Author: The Code Pharmacy
  Author URI: http://thecodepharmacy.co.uk/
  License: Proprietary
@@ -16,7 +16,9 @@
  without express written permission of the author
  */
 
-$simian_connect_version = "0.2";
+$simian_connect_version = "0.3";
+add_action('plugins_loaded', 'simian_update_db_check');
+
 add_action('admin_init','simian_admin_init');
 add_action('admin_menu', 'simian_menu');
 add_action('admin_init', 'simian_settings_init');
@@ -195,14 +197,17 @@ function simian_get_reel($reelid){
 			
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
 			
-			$insertMedia = sprintf('INSERT INTO %1$s (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url) VALUES (%2$d,%3$d,\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\') ON DUPLICATE KEY UPDATE media_title = \'%4$s\',media_thumb = \'%5$s\',media_url = \'%6$s\',media_mobile_url = \'%7$s\'',
+			$insertMedia = sprintf('INSERT INTO %1$s (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES (%2$d,%3$d,\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',\'%9$s\') ON DUPLICATE KEY UPDATE media_title = \'%4$s\',media_thumb = \'%5$s\',media_url = \'%6$s\',media_mobile_url = \'%7$s\'',
 			$wpdb->prefix . "simian_media",
 			$mediaitem->id,
 			$return->reel->id,
 			$mediaitem->title,
 			strip_url($mediaitem->thumbnail,$simian_url. "/assets/"),
 			strip_url($mediaitem->media_file,$simian_url. "/assets/"),
-			strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"));
+			strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"),
+			$mediaitem->media_width,
+			$mediaitem->media_height
+			);
 					
 			$wpdb->query($insertMedia);
 		}
@@ -273,18 +278,14 @@ function simian_client_config(){
 	
 	if(isset($_POST['showReelList'])){
 		update_option('simian_default_showreel', 1);
-		$changes = true;
 	} else {
 		update_option('simian_default_showreel', 0);
-		$changes = true;
 	}
 	
 	if(isset($_POST['showPoster'])){
 		update_option('simian_default_showposters', 1);
-		$changes = true;
 	} else {
 		update_option('simian_default_showposters', 0);
-		$changes = true;
 	}
 
 	if($changes){
@@ -349,6 +350,8 @@ function simian_settings_init() {
 
 	add_option('simian_default_width','640');
 	add_option('simian_default_height','480');
+	
+	add_option('simian_debug_text','');
 	
 }
 
@@ -565,6 +568,8 @@ function simian_install(){
 			  `media_thumb` varchar(120) NOT NULL,
 			  `media_url` varchar(120) NOT NULL,
 			  `media_mobile_url` varchar(120) NOT NULL,
+			  `media_width` mediumint(9) NOT NULL,
+			  `media_height` mediumint(9) NOT NULL,
 			  PRIMARY KEY (`unique_media_id`),
 			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
 			) ENGINE=MyISAM;";
@@ -583,7 +588,17 @@ function simian_install(){
 	dbDelta($sql2);
 	
 	update_option('simian_db_version',$simian_connect_version);
+	update_option('simian_connect_version',$simian_connect_version);
 
+}
+
+function simian_update_db_check(){
+
+    global $simian_connect_version;
+    if (get_site_option('simian_db_version') != $simian_connect_version) {
+        simian_db_upgrade();
+    }
+ 
 }
 
 function simian_db_upgrade(){
@@ -604,6 +619,8 @@ function simian_db_upgrade(){
 			  `media_thumb` varchar(120) NOT NULL,
 			  `media_url` varchar(120) NOT NULL,
 			  `media_mobile_url` varchar(120) NOT NULL,
+			  `media_width` mediumint(9) NOT NULL,
+			  `media_height` mediumint(9) NOT NULL,
 			  PRIMARY KEY (`unique_media_id`),
 			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
 			) ENGINE=MyISAM;";
@@ -622,6 +639,10 @@ function simian_db_upgrade(){
 	dbDelta($sql2);
 	
 	update_option('simian_db_version',$simian_connect_version);
+	update_option('simian_connect_version',$simian_connect_version);
+	
+	update_option('simian_debug_text',$sql1);
+	
 	
 }
 
@@ -648,11 +669,7 @@ function simian_new_media($data){
 
 function simian_admin_init(){
 
-	global $simian_connect_version;
 	wp_enqueue_script('simianadminjs',plugin_dir_url(__FILE__).'js/simian_admin.js','jquery');
 	wp_enqueue_style('simianadmincss',plugin_dir_url(__FILE__).'css/simian_admin.css');
-	if(!get_option('simian_db_version')){
-		simian_db_upgrade();
-	}
 
 }
