@@ -24,14 +24,18 @@ add_action('admin_init', 'simian_settings_init');
 
 //$wpdb->show_errors();
 
-function simian_menu() {
+function simian_menu(){
+
 	add_menu_page(__('Simian Connect'), __('Simian Connect'), "manage_options", "simian_connect","simian_client_config",plugins_url( 'media/simian-icon-16.png' , __FILE__ ));
 	
 	add_submenu_page('simian_connect',__('Simian Connect'),__('Reel Cache'),'manage_options', 'simian-cache-run', 'simian_cache_page');
 	add_submenu_page('simian_connect',__('Simian Connect'),__('Debug'),'manage_options', 'simian-connect-config', 'simian_config');
+	
 }
 
 function simian_config() {
+	
+	global $wpdb;
 	
 	$html = "";
 	
@@ -59,6 +63,43 @@ function simian_config() {
 	} else {
 		$html .= "Success!</p>";
 	}
+	
+	/*
+	
+	//testing into getting a quicker media list
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com";
+	
+	$simian_post = array();
+	$simian_post['auth_token'] = get_option('simian_client_api_key');
+	$simian_post['section'] = "media";
+	$simian_post['start_record'] = "0";
+	$simian_post['limit'] = "10";
+	
+	$ch = curl_init($simian_url . "/v2/api/main/select_all");
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $simian_post);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$response = curl_exec($ch);
+
+	if(!($reel = simplexml_load_string($response))){
+	
+		$html .= "API XML parse error";
+		
+	
+	} else {
+	
+		foreach($reel as $media){
+	
+		$html .= "<p>" . $media->title . "</p>";
+		
+		}
+	
+		$html .= "<code>" . htmlentities($response). "</code>";	
+		
+	}
+	*/
 	
 	echo $html;
 
@@ -91,11 +132,13 @@ function simian_ajax_select_reel() {
 
 	global $wpdb;
 	
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" . "/assets/";
+	
 	echo "<p>Click on a reel from the selection below to insert it into your post: <input id=\"simian_select_filter\" type=\"text\" name=\"reel_filter\" value=\"Filter Reels\" /></p>";
 	$reels = $wpdb->get_results(sprintf('SELECT r.reel_id, r.reel_title, r.reel_time, m.media_thumb from %1$s r LEFT JOIN %2$s m ON r.reel_id = m.reel_id GROUP BY r.reel_id ORDER BY r.reel_time DESC;',$wpdb->prefix . "simian_reels",$wpdb->prefix . "simian_media"));
 	echo "<ul class=\"reel_select\">";
 	foreach ($reels as $reel){
-	echo "<li class=\"left\"><a id=\"reel_id_".$reel->reel_id."\" href=\"#\"><img src=\"" . $reel->media_thumb . "\" /></a><h4>".$reel->reel_id."</h4><p class=\"reel_title\">".$reel->reel_title."</p></li>";
+	echo "<li><a id=\"reel_id_".$reel->reel_id."\" href=\"#\"><img src=\"" .$simian_url .  $reel->media_thumb . "\" /></a><h4>".$reel->reel_id."</h4><p class=\"reel_title\">".$reel->reel_title."</p></li>";
 	}
 	echo "</ul>";
 	if(count($reels)==0){
@@ -184,7 +227,6 @@ function simian_ajax_get_reel() {
 		echo json_encode($jsonreturn);
 		die();	
 	}
-	
 	
 }
 
@@ -301,7 +343,8 @@ function simian_settings_init() {
 	
 }
 
-function simian_addbuttons() {
+function simian_addbuttons(){
+
 	// Don't bother doing this stuff if the current user lacks permissions
 	if ( ! current_user_can('edit_posts') && ! current_user_can('edit_pages') ){
 		return;
@@ -314,33 +357,37 @@ function simian_addbuttons() {
 	}
 }
 
-function register_simian_button($buttons) {
+function register_simian_button($buttons){
+
 	array_push($buttons, "separator", "simianc");
 	return $buttons;
+	
 }
 
 // Load the TinyMCE plugin : editor_plugin.js (wp2.5)
-function add_simian_tinymce_plugin($plugin_array) {
+function add_simian_tinymce_plugin($plugin_array){
+
 	$plugin_array['simianc'] = plugin_dir_url(__FILE__).'tinymce/editor_plugin.js';
 	return $plugin_array;
+
 }
 
 // init process for button control
 add_action('init', 'simian_addbuttons');
 
-function simiancreel_tag_func( $atts ) {
+function simiancreel_tag_func($atts){
 
 	return simianwreel_process($atts,"company");
 	
 }
 
-function simianwreel_tag_func( $atts ) {
+function simianwreel_tag_func($atts){
 
 	return simianwreel_process($atts,"web");
 
 }
 
-function simianwreel_process( $atts, $type ) {
+function simianwreel_process($atts, $type){
 
 	$html = "error";
 	if(isset($atts['id'])){
@@ -480,7 +527,8 @@ function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height, $poster){
 	return $html;
 }
 
-function simian_install() {
+function simian_install(){
+
 	global $wpdb;
 	global $simian_connect_version;
 	
@@ -519,6 +567,7 @@ function simian_install() {
 }
 
 function simian_db_upgrade(){
+
 	global $wpdb;
 	global $simian_connect_version;
 	
@@ -582,7 +631,6 @@ function simian_new_media($data){
 }
 wp_enqueue_script('jquery');
 
-
 //wp_enqueue_script('swfobject');
 //wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
 
@@ -590,19 +638,17 @@ wp_enqueue_script('prototype');
 wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
 wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
 wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
-
-
 wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
 
 add_action('admin_init','simian_admin_init');
-function simian_admin_init() {
+
+function simian_admin_init(){
+
 	global $simian_connect_version;
 	wp_enqueue_script('simianadminjs',plugin_dir_url(__FILE__).'js/simian_admin.js','jquery');
 	wp_enqueue_style('simianadmincss',plugin_dir_url(__FILE__).'css/simian_admin.css');
 	if(!get_option('simian_db_version')){
 		simian_db_upgrade();
 	}
+
 }
-
-
-
