@@ -418,14 +418,17 @@ function simianwreel_process($atts, $type){
 	if(isset($atts['id'])){
 		
 		//width & height
-		$d_width = get_option('simian_default_width');
-		$d_height = get_option('simian_default_height');
+		$d_width = intval(get_option('simian_default_width'));
+		$d_height = intval(get_option('simian_default_height'));
 
 		if(isset($atts['height'])){ $height = intval($atts['height']); }
-		else { $height = $d_height; }
+		else if($d_height != 0){ $height = $d_height; }
+		else { $height = null; }
 		
+				
 		if(isset($atts['width'])){ $width = intval($atts['width']); }
-		else { $width = $d_width; }
+		else if($d_width != 0){ $width = $d_width; }
+		else { $width = null; }
 		
 		//poster
 		$poster = get_option('simian_default_showposters');
@@ -480,12 +483,15 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 	
 	if($result->count > 0){
 	
-		$medialist = $wpdb->get_results(sprintf("SELECT media_title, media_url, media_thumb FROM %1s WHERE reel_id = %2d",$wpdb->prefix . "simian_media",$reelid));	
+		$medialist = $wpdb->get_results(sprintf("SELECT media_title, media_url, media_thumb, media_width, media_height  FROM %1s WHERE reel_id = %2d",$wpdb->prefix . "simian_media",$reelid));	
 		
 		$dom_id = "simreel_" . $reelid;
 		
 		$html .= "<div id=\"" . $dom_id . "\" class=\"reelPlayer\">";
 		$html .= "<div class=\"reelVideo\">";
+		
+			if($width === null){ $width = $medialist[0]->media_width; }
+			if($height === null){ $height = $medialist[0]->media_height; }
 		
 		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height, $poster);
 		
