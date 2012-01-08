@@ -21,7 +21,6 @@ add_action('plugins_loaded', 'simian_update_db_check');
 
 add_action('admin_init','simian_admin_init');
 add_action('admin_menu', 'simian_menu');
-add_action('admin_init', 'simian_settings_init');
 // init process for button control
 add_action('init', 'simian_addbuttons');
 
@@ -32,6 +31,7 @@ add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
 add_shortcode( 'scompanyreel', 'simiancreel_tag_func' );
 add_shortcode( 'swebreel', 'simianwreel_tag_func' );
 register_activation_hook(__FILE__,'simian_install');
+register_activation_hook(__FILE__, 'simian_settings_init');
 
 //$wpdb->show_errors();
 
@@ -276,17 +276,30 @@ function simian_client_config(){
 		$changes = true;
 	}
 	
-	if(isset($_POST['showReelList'])){
-		update_option('simian_default_showreel', 1);
-	} else {
-		update_option('simian_default_showreel', 0);
+	if(isset($_POST['submit'])){
+		switch($_POST['showReelList']){
+			case 1:
+				update_option('simian_default_showreel', 1);
+				break;
+			default:
+				update_option('simian_default_showreel', 0);
+		}
+		switch($_POST['showPoster']){
+			case 1:
+				update_option('simian_default_showposters', 1);
+				break;
+			default:
+				update_option('simian_default_showposters', 0);
+		}
+		switch($_POST['useJW']){
+			case 1:
+				update_option('simian_use_jw', 1);
+				break;
+			default:
+				update_option('simian_use_jw', 0);
+		}
 	}
 	
-	if(isset($_POST['showPoster'])){
-		update_option('simian_default_showposters', 1);
-	} else {
-		update_option('simian_default_showposters', 0);
-	}
 
 	if($changes){
 		echo '<div id="setting-error-settings_updated" class="updated settings-error"><p><strong>Settings saved.</strong></p></div>';
@@ -320,15 +333,20 @@ function simian_client_config(){
 			<td><input name="simianDefaultHeight" type="text" id="simianDefaultHeight" value="'.get_option('simian_default_height').'" class="regular-text" />
 			<span class="description">px (e.g. 480). Set to 0 to use real video size.</span></td>
 			</tr>
-			
+			<tr valign="top">
 			<th scope="row"><label for="showReelList">Show Reel List</label></th>
 			<td><input name="showReelList" id="showReelList" type="checkbox" value="1" class="code" ' . checked( 1, get_option('simian_default_showreel'), false ) . ' />
 			<span class="description">Show the Reel list by default in each tag</span></td>
-			</tr>
-			
+			</tr>	
+			<tr valign="top">
 			<th scope="row"><label for="showPoster">Show poster?</label></th>
 			<td><input name="showPoster" id="showPoster" type="checkbox" value="1" class="code" ' . checked( 1, get_option('simian_default_showposters'), false ) . ' />
 			<span class="description">Poster frames can be used to stop auto loading of movies.</span></td>
+			</tr>
+			<tr valign="top">
+			<th scope="row"><label for="useJW">Use HTML5/Flash JW Player</label></th>
+			<td><input name="useJW" id="useJW" type="checkbox" value="1" class="code" ' . checked(1, get_option('simian_use_jw'), false) . ' />
+			<span class="description">Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. If unsure, leave unchecked.</strong></span></td>
 			</tr>
 
 			</tbody></table>';
@@ -339,14 +357,14 @@ function simian_client_config(){
 
 function simian_settings_init() {
 
-	add_option('simian_connect_version','0.1');
-
 	add_option('simian_client_api_key','');
 	add_option('simian_client_company_id','');
 	add_option('simian_cache_time','3600');	
 	
 	add_option('simian_default_showreel','0');
 	add_option('simian_default_showposters','1');
+
+	add_option('simian_use_jw','0');
 
 	add_option('simian_default_width','640');
 	add_option('simian_default_height','480');
@@ -389,13 +407,16 @@ function simian_call_requires(){
 
 	wp_enqueue_script('jquery');
 	
-	//wp_enqueue_script('swfobject');
-	//wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
+	if(get_option('simian_use_jw')==1){
+		wp_enqueue_script('swfobject');
+		wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
+	} else {
+		wp_enqueue_script('prototype');
+		wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
+		wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
+		wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
+	}	
 	
-	wp_enqueue_script('prototype');
-	wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
-	wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
-	wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
 	wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
 
 }
