@@ -511,8 +511,8 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 		$html .= "<div id=\"" . $dom_id . "\" class=\"reelPlayer\">";
 		$html .= "<div class=\"reelVideo\">";
 		
-			if($width === null){ $width = $medialist[0]->media_width; }
-			if($height === null){ $height = $medialist[0]->media_height; }
+		if($width === null){ $width = $medialist[0]->media_width; }
+		if($height === null){ $height = $medialist[0]->media_height; }
 		
 		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height, $poster);
 		
@@ -586,8 +586,7 @@ function simian_install(){
 	
 	$mediaTableName = $wpdb->prefix . "simian_media";
 
-	$sql1 = "DROP TABLE IF EXISTS `" . $mediaTableName . "`;
-			CREATE TABLE IF NOT EXISTS `" . $mediaTableName . "` (
+	$sql1 = "CREATE TABLE `" . $mediaTableName . "` (
 			  `unique_media_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 			  `media_id` mediumint(9) NOT NULL,
 			  `reel_id` mediumint(9) NOT NULL,
@@ -599,16 +598,15 @@ function simian_install(){
 			  `media_height` mediumint(9) NOT NULL,
 			  PRIMARY KEY (`unique_media_id`),
 			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
-			) ENGINE=MyISAM;";
+			);";
 			
-	$sql2 = "DROP TABLE IF EXISTS `" . $reelTableName . "`;
-			CREATE TABLE IF NOT EXISTS `" . $reelTableName . "` (
+	$sql2 = "CREATE TABLE `" . $reelTableName . "` (
 			  `reel_id` mediumint(9) NOT NULL,
 			  `reel_title` varchar(55) NOT NULL,
 			  `reel_freshness` datetime NOT NULL,
 			  `reel_time` datetime DEFAULT NULL,
 			  PRIMARY KEY (`reel_id`)
-			) ENGINE=MyISAM;";
+			);";
 	
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 	dbDelta($sql1);
@@ -629,7 +627,7 @@ function simian_update_db_check(){
 }
 
 function simian_db_upgrade(){
-
+	echo "Hello";
 	global $wpdb;
 	global $simian_connect_version;
 	
@@ -637,8 +635,7 @@ function simian_db_upgrade(){
 	
 	$mediaTableName = $wpdb->prefix . "simian_media";
 
-	$sql1 = "DROP TABLE IF EXISTS `" . $mediaTableName . "`;
-			CREATE TABLE IF NOT EXISTS `" . $mediaTableName . "` (
+	$sql1 = "CREATE TABLE `" . $mediaTableName . "` (
 			  `unique_media_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 			  `media_id` mediumint(9) NOT NULL,
 			  `reel_id` mediumint(9) NOT NULL,
@@ -650,17 +647,16 @@ function simian_db_upgrade(){
 			  `media_height` mediumint(9) NOT NULL,
 			  PRIMARY KEY (`unique_media_id`),
 			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
-			) ENGINE=MyISAM;";
+			);";
 			
-	$sql2 = "DROP TABLE IF EXISTS `" . $reelTableName . "`;
-			CREATE TABLE IF NOT EXISTS `" . $reelTableName . "` (
+	$sql2 = "CREATE TABLE `" . $reelTableName . "` (
 			  `reel_id` mediumint(9) NOT NULL,
 			  `reel_title` varchar(55) NOT NULL,
 			  `reel_freshness` datetime NOT NULL,
 			  `reel_time` datetime DEFAULT NULL,
 			  PRIMARY KEY (`reel_id`)
-			) ENGINE=MyISAM;";
-	
+			);";
+
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 	dbDelta($sql1);
 	dbDelta($sql2);
