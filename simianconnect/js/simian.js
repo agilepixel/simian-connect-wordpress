@@ -18,14 +18,17 @@ $j(document).ready(function() {
 
 	$j('ul.reelList').on('click','a',function() {
 	
-		$reel_id = $j(this).attr('rel');
-		$p = $j("#"+$reel_id);
+		var $reel_id = $j(this).attr('rel');
 		
-		$m = $j("<div />").attr('id', $reel_id +"_mov");
+		var $p = $j("#"+$reel_id);
+		
+		var $m = $j("<div />").attr('id', $reel_id +"_mov");
+		
+		var mediaClass = $j(this).parent('li').attr('class').replace('simian_media_','sim_dim');
 		
 		$p.find('div.reelVideo').empty().append($m);
 		
-		qtEmbed($reel_id +"_mov",$j(this).attr('href'),480,240,"true");
+		qtEmbed($reel_id +"_mov",$j(this).attr('href'),eval(mediaClass).width,eval(mediaClass).height,"true");
 		
 		$p.find('.mediaTitle').html($j(this).children('img').first().attr('title'));
 		
