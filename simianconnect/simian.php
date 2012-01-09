@@ -528,11 +528,18 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 
 
 			$html .= "<ul class=\"reelList\">\n";
+			$firstSelect = true;
 			foreach($medialist as $mediaitem){
 				$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">";
 				$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
 				$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" />";
 				$html .= "</a>";
+				if($firstSelect){
+					$html .= "<div class=\"overlay selected hoverOver\">".$mediaitem->media_title."</div>";
+					$firstSelect = false;
+				} else {
+					$html .= "<div class=\"overlay\">".$mediaitem->media_title."</div>";
+				}
 				$html .= "</li>\n";
 
 				wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
