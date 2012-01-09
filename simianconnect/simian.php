@@ -646,7 +646,6 @@ function simian_update_db_check(){
 }
 
 function simian_db_upgrade(){
-	echo "Hello";
 	global $wpdb;
 	global $simian_connect_version;
 

@@ -3,7 +3,7 @@ Contributors: code418
 Tags: simian
 Requires at least: 3.2.1
 Tested up to: 3.2.1
-Stable tag: 0.2
+Stable tag: 0.3
 
 Connector for Simian XML API
 
