@@ -16,32 +16,35 @@ var $j = jQuery.noConflict();
 
 $j(document).ready(function() {
 
-	$j('ul.reelList').on('click','a',function() {
+	$j('ul.reelList').on('click','li',function() {
 
-		var $reel_id = $j(this).attr('rel');
+		$j('ul.reelList .selected.hoverOver').removeClass('selected').removeClass('hoverOver');
+		$j(this).children('.overlay').addClass('selected').addClass('hoverOver');
+
+		var $reel_id = $j(this).children('a').attr('rel');
 
 		var $p = $j("#"+$reel_id);
 
 		var $m = $j("<div />").attr('id', $reel_id +"_mov");
 
-		var mediaClass = $j(this).parent('li').attr('class').replace('simian_media_','sim_dim');
+		var mediaClass = $j(this).attr('class').replace('simian_media_','sim_dim');
 
-		$p.find('div.reelVideo').empty().append($m);
+		$p.find('div.reelVideo .reelContainer').empty().append($m);
 
-		qtEmbed($reel_id +"_mov",$j(this).attr('href'),eval(mediaClass).width,eval(mediaClass).height,"true");
+		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),eval(mediaClass).width,eval(mediaClass).height,"true");
 
-		$p.find('.mediaTitle').html($j(this).children('img').first().attr('title'));
+		$p.find('.mediaTitle').html($j(this).siblings('img').first().attr('title'));
 
 		return false;
 	});
 
-	$j('ul.reelList').on('mouseenter','a',function() {
-		$j(this).siblings('.overlay').addClass('hoverOver');
+	$j('ul.reelList').on('mouseenter','li',function() {
+		$j(this).children('.overlay').addClass('hoverOver');
 	});
 
-	$j('ul.reelList').on('mouseleave','a',function() {
-		if(!$j(this).siblings('.overlay').hasClass('selected')){
-			$j(this).siblings('.overlay').removeClass('hoverOver');
+	$j('ul.reelList').on('mouseleave','li',function() {
+		if(!$j(this).children('.overlay').hasClass('selected')){
+			$j(this).children('.overlay').removeClass('hoverOver');
 		}
 	});
 

@@ -506,7 +506,7 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 
 		$html .= "<div id=\"" . $dom_id . "\" class=\"reelPlayer\">";
 		$html .= "<div class=\"reelVideo\">";
-
+		$html .= "<div class=\"reelContainer\">";
 		$customSize = false;
 		if($height === null){
 			 $height = $medialist[0]->media_height;
@@ -517,7 +517,7 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster){
 		}
 
 		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height, $poster);
-
+		$html .= "</div>\n";
 		$html .= "</div>\n";
 
 		$html .= "<h2 class=\"reelTitle\">".$result->reel_title."</h2>";
@@ -646,6 +646,7 @@ function simian_update_db_check(){
 }
 
 function simian_db_upgrade(){
+	
 	global $wpdb;
 	global $simian_connect_version;
 

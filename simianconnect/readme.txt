@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: code418
 Tags: simian
-Requires at least: 3.2.1
-Tested up to: 3.2.1
+Requires at least: 3.3
+Tested up to: 3.3
 Stable tag: 0.3
 
 Connector for Simian XML API
