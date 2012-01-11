@@ -31,7 +31,7 @@ $j(document).ready(function() {
 
 		$p.find('div.reelVideo .reelContainer').empty().append($m);
 
-		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),eval(mediaClass).width,eval(mediaClass).height,"true");
+		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),eval(mediaClass).width,eval(mediaClass).height,"true",$j(this).find('img').attr('src'));
 
 		$p.find('.mediaTitle').html($j(this).siblings('img').first().attr('title'));
 
@@ -51,13 +51,27 @@ $j(document).ready(function() {
 
 });
 
-function qtEmbed($dom_id,$src,$width,$height,$autostart){
+function qtEmbed($dom_id,$src,$width,$height,$autostart,$poster){
 
-	if (typeof(QT) != "undefined") { 
+	if (typeof(QTP) != "undefined" && typeof(QTP.Poster) != "undefined") {
+		
+		var $parent = $j('#'+$dom_id).parent();
+		var $new = "<a href=\""+$src+"\" rel=\"qtposter\" jscontroller=\"false\"><img src=\""+$poster+"\" width=\""+$width+"\" height=\""+$height+"\" /></a>";
+		$($dom_id).replace($new);
+		QTP.Poster.instantiatePosters();
+		if($autostart==="true"){
+			$parent.children('.QTP').click();
+		}
+		
+	} else if (typeof(QT) != "undefined") { 
 
 		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '','scale','tofit', 'autostart',$autostart);
-
 		$($dom_id).replace($new);
+		QTP.Poster.instantiatePosters();
 
+	} else {
+		
+		console.log("Quicktime not loaded!!!");
+		
 	}
 }
