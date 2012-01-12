@@ -262,7 +262,6 @@ function simian_settings_init() {
 
 	//Reel Defaults
 	add_option('simian_default_show_title','1');
-
 	add_option('simian_default_show_playlist','1');
 	add_option('simian_default_autoplay','0');
 	add_option('simian_use_jw','0');
@@ -300,7 +299,7 @@ function simian_client_config(){
 		$changes = admin_update_text("simianTime","simian_cache_time");
 		
 		//Reel Defaults
-		$changes = admin_update_text("showTitle","simian_default_show_title");
+		admin_update_checkbox("showTitle","simian_default_show_title");
 		admin_update_checkbox("showPlaylist","simian_default_show_playlist");
 		admin_update_checkbox("autoPlayPlaylist","simian_default_autoplay");
 		admin_update_checkbox("useJW","simian_use_jw");
@@ -553,44 +552,10 @@ function simian_tag_boolean($atts, $tag ,$option,$enum=null){
 function simian_tag_process($atts, $type){
 	
 	$html = "error";
-	$final_options = array();
-	if(isset($atts['id'])){
 	
-		/* reel */
-		$final_options['reel_title'] = simian_tag_boolean($atts,"title","simian_default_show_title", array("show","hide"));
-		
-		/* playlist */
-		$show_playlist = simian_tag_boolean($atts,"playlist","simian_default_show_playlist", array("show","hide"));
+	if(isset($atts['id'])){
 
-		/* current video */
-		
-		$d_width = intval(get_option('simian_default_width'));
-		$d_height = intval(get_option('simian_default_height'));
-
-		if(isset($atts['height'])){ $height = intval($atts['height']); }
-		else if($d_height != 0){ $height = $d_height; }
-		else { $height = null; }
-
-		if(isset($atts['width'])){ $width = intval($atts['width']); }
-		else if($d_width != 0){ $width = $d_width; }
-		else { $width = null; }
-		
-		
-
-		$poster = get_option('simian_default_showposters');
-
-		if($poster === "1"){ $poster = true; }
-		else if($poster === "0"){ $poster = false; }
-
-		if(isset($atts['poster'])){
-
-			if($atts['poster'] == "show"){ $poster = true; }
-			if($atts['poster'] == "hide"){ $poster = false; }
-				
-		}
-		
-		
-		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster, $show_playlist,$final_options);
+		$html = simian_load_reel($atts['id'], $type, $atts);
 
 	} else {
 
@@ -622,10 +587,15 @@ function wp_get_playlist($reel_id){
 
 }
 
-function simian_load_reel($reel_id, $width, $height, $type="web", $poster, $show_playlist,$final_options){
+function simian_load_reel($reel_id, $type="web", $atts){
 
-	global $wpdb;
-
+	/* reel options */
+	$final_options = array();
+	$final_options['reel_title'] = simian_tag_boolean($atts,"title","simian_default_show_title", array("show","hide"));
+	$final_options['show_playlist'] = simian_tag_boolean($atts,"playlist","simian_default_show_playlist", array("show","hide"));
+	$final_options['autoplay'] = simian_tag_boolean($atts,"autoplay","simian_default_autoplay");
+	$final_options['use_jw'] = simian_tag_boolean($atts,"use_jw","simian_use_jw");
+		
 	$simian_url = "http://" . get_option('simian_client_company_id') . ".gosimian.com" . "/assets/";
 
 	$html = "";
@@ -664,11 +634,11 @@ function simian_load_reel($reel_id, $width, $height, $type="web", $poster, $show
 		$playlist = wp_get_playlist($reel_id);
 		
 		// current video player
-		$html .= simian_movie_html($dom_id,$playlist[0],$final_options);
+		$html .= simian_video_html($dom_id,$playlist[0],$atts);
 		
-		if($show_playlist != false){
+		if($final_options['show_playlist'] != false){
 
-			$html .= simian_show_playlist($simian_url,$dom_id,$playlist, $customSize, $height);
+			//$html .= simian_show_playlist($simian_url,$dom_id,$atts);
 
 		}
 
@@ -681,6 +651,90 @@ function simian_load_reel($reel_id, $width, $height, $type="web", $poster, $show
 		$html .= "No Reel Found (Bad Reel ID?)";
 
 	}
+
+	return $html;
+}
+
+function simian_video_html($dom_id,$video,$atts){
+			
+	/* video options */
+	$final_options = array();
+	$final_options['video_title'] = simian_tag_boolean($atts,"video_title","simian_default_show_current_title", array("show","hide"));
+	$final_options['poster'] = simian_tag_boolean($atts,"poster","simian_default_showposters", array("show","hide"));
+	
+	//defaults from db
+	$vdim = array();
+	$vdim['width'] = intval(get_option('simian_default_width'));
+	$vdim['height'] = intval(get_option('simian_default_height'));
+	
+	//tag settings
+	if(isset($atts['width'])){ $vdim['width'] = intval($atts['width']); }
+	if(isset($atts['height'])){ $vdim['height'] = intval($atts['height']); }
+	
+	if($vdim['width'] == 0 && $vdim['height'] == 0){ $vdim['resize_mode'] = "original"; }
+	else if($vdim['width'] == 0){ $vdim['resize_mode'] = "aspect_width"; }
+	else if($vdim['height'] == 0){ $vdim['resize_mode'] = "aspect_height"; }
+	else { $vdim['resize_mode'] = "use_default"; }
+		
+	$dom_id = $dom_id . "_mov";
+
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" .  "/assets/";
+
+	$movie_url =  $simian_url . $video->media_url;
+
+	$html = "";
+	
+	$html .= "<dl class=\"current_video\">";
+		
+		if($final_options['video_title'] != false){ $html .= "<dt class=\"current_video_title\">" . $video->media_title . "</dt>"; }
+		
+		$html .= "<dd class=\"current_video_player\">";
+		
+		switch($vdim['resize_mode']){
+		case "original":
+		
+			$height = $video->media_height;
+			$width = $video->media_width;
+		
+		break;
+		case "aspect_width":
+		
+			$height = $video->media_height;
+			$width = round(($video->media_width / $video->media_height) * $height);
+		
+		break;
+		case "aspect_height":
+		
+			$width = $video->media_width;
+			$height = round(($video->media_width / $video->media_height) * $width);
+		
+		break;
+		case "use_default":
+		default:
+			
+			$height = $vdim['height'];
+			$width = $vdim['width'];
+		}
+	
+	
+	//poster
+	if($final_options['poster'] != false){
+
+		$html .= "<a href=\"".$movie_url."\" rel=\"qtposter\" jscontroller=\"false\"><img src=\"". $simian_url . $video->media_thumb ."\" width=\"".$width."\" height=\"".$height."\" /></a>";
+
+	} else {
+
+		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
+
+		$html .= "<script type=\"text/javascript\">";
+			$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$width."','".$height."', 'false');";
+		$html .= "</script>";
+
+	}
+	
+	$html .= "</dd>\n";
+		
+	$html .= "</dl>\n";
 
 	return $html;
 }
@@ -733,59 +787,6 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$customSize, $height
 	
 	return $html;
 
-}
-
-function simian_movie_html($dom_id,$video,$final_options){
-
-	$dom_id = $dom_id . "_mov";
-
-	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" .  "/assets/";
-
-	$movie_url =  $simian_url . $video->media_url;
-
-	$html = "";
-	
-	$html .= "<dl class=\"current_video\">";
-		
-		$html .= "<dt class=\"current_video_title\">" . $video->media_title . "</dt>";
-		
-		$html .= "<dd class=\"current_video_player\">";		
-		
-		$customSize = false;
-		if(isset($height) && $height === null){
-		
-			 //use API dimensions
-			 $height = $video->media_height;
-			 $width = $video->media_width;
-		
-		} else {
-		
-			$customSize = true;
-			$width = round(($video->media_width / $video->media_height) * $height);
-		
-		}
-	
-	
-	//poster
-	if($poster === true){
-
-		$html .= "<a href=\"".$movie_url."\" rel=\"qtposter\" jscontroller=\"false\"><img src=\"". $simian_url . $thumb."\" width=\"".$width."\" height=\"".$height."\" /></a>";
-
-	} else {
-
-		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
-
-		$html .= "<script type=\"text/javascript\">";
-			$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$width."','".$height."', 'false');";
-		$html .= "</script>";
-
-	}
-	
-	$html .= "</dd>\n";
-		
-	$html .= "</dl>\n";
-
-	return $html;
 }
 
 function simian_install(){
