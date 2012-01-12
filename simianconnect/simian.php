@@ -169,7 +169,7 @@ function simian_ajax_select_reel() {
 }
 
 
-function simian_get_reel($reelid){
+function simian_get_reel($reel_id){
 
 	global $wpdb;
 
@@ -177,7 +177,7 @@ function simian_get_reel($reelid){
 
 	$ch = curl_init($simian_url . "/v2/api/simian/get_reel");
 	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_id=".$reelid."&reel_type=web_reels");
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_id=".$reel_id."&reel_type=web_reels");
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -262,12 +262,13 @@ function simian_settings_init() {
 
 	//Reel Defaults
 	add_option('simian_default_show_title','1');
-	add_option('simian_default_show_current_title','1');
+
 	add_option('simian_default_show_playlist','1');
 	add_option('simian_default_autoplay','0');
 	add_option('simian_use_jw','0');
 	
 	//Current Video Defaults
+	add_option('simian_default_show_current_title','1');
 	add_option('simian_default_width','640');
 	add_option('simian_default_height','480');
 	add_option('simian_default_showposters','1');
@@ -300,12 +301,13 @@ function simian_client_config(){
 		
 		//Reel Defaults
 		$changes = admin_update_text("showTitle","simian_default_show_title");
-		admin_update_checkbox("showNowPlayingTitle","simian_default_show_current_title");
 		admin_update_checkbox("showPlaylist","simian_default_show_playlist");
 		admin_update_checkbox("autoPlayPlaylist","simian_default_autoplay");
 		admin_update_checkbox("useJW","simian_use_jw");
 		
 		//Current Video Defaults 
+		admin_update_checkbox("showNowPlayingTitle","simian_default_show_current_title");
+	
 		$changes = admin_update_text("simianDefaultWidth","simian_default_width");
 		$changes = admin_update_text("simianDefaultHeight","simian_default_height");
 		admin_update_checkbox("showPoster","simian_default_showposters");
@@ -344,9 +346,6 @@ function simian_client_config(){
 		$html .= admin_setting_input("showTitle","Show Reel Title", checked( 1, get_option('simian_default_show_title'), false ),
 		"Show the reel title by default.","checkbox");
 		
-		$html .= admin_setting_input("showNowPlayingTitle","Show Current Video Title", checked( 1, get_option('simian_default_show_current_title'), false ),
-		"Show the title of the current playing video by default.","checkbox");
-		
 		$html .= admin_setting_input("showPlaylist","Show Playlist", checked( 1, get_option('simian_default_show_playlist'), false ),
 		"Show the playlist by default.","checkbox");
 		
@@ -361,6 +360,9 @@ function simian_client_config(){
 	$html .= "<h3>Current Video Defaults</h3>";
 	
 		$html .= "<dl class=\"settings-group\">";
+		
+		$html .= admin_setting_input("showNowPlayingTitle","Show Current Video Title", checked( 1, get_option('simian_default_show_current_title'), false ),
+		"Show the title of the current playing video by default.","checkbox");
 	
 		$html .= admin_setting_input("simianDefaultWidth","Video Width",get_option('simian_default_width'),
 		"px (e.g. 640). Set to 0 to use the actual video width or to auto calculate if a height is given.");
@@ -525,12 +527,40 @@ function simianwreel_tag_func($atts){
 
 }
 
+function simian_tag_boolean($atts, $tag ,$option,$enum=null){
+
+	//get default
+	$default = (boolean) get_option($option);
+	
+	if(!isset($atts[$tag])){ return $default; }
+	
+	$boo = $atts[$tag];
+	
+	if($enum != null && count($enum) == 2){
+	
+		if($boo == $enum[0]){ return true; }
+		if($boo == $enum[1]){ return false; }
+	
+	} else {
+	
+		if($boo == "true"){ return true; }
+		if($boo == "false"){ return false; }
+	
+	}
+
+}
+
 function simian_tag_process($atts, $type){
 	
 	$html = "error";
+	$final_options = array();
 	if(isset($atts['id'])){
 	
 		/* reel */
+		$final_options['reel_title'] = simian_tag_boolean($atts,"title","simian_default_show_title", array("show","hide"));
+		
+		/* playlist */
+		$show_playlist = simian_tag_boolean($atts,"playlist","simian_default_show_playlist", array("show","hide"));
 
 		/* current video */
 		
@@ -544,6 +574,8 @@ function simian_tag_process($atts, $type){
 		if(isset($atts['width'])){ $width = intval($atts['width']); }
 		else if($d_width != 0){ $width = $d_width; }
 		else { $width = null; }
+		
+		
 
 		$poster = get_option('simian_default_showposters');
 
@@ -557,13 +589,8 @@ function simian_tag_process($atts, $type){
 				
 		}
 		
-		/* playlist */
-		$show_playlist = get_option('simian_default_show_playlist');
 		
-		if(isset($atts['playlist']) && $atts['playlist'] == "show"){ $show_playlist = true; }
-		else if(isset($atts['playlist']) && $atts['playlist'] == "hide"){ $show_playlist = false; }	
-		
-		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster, $show_playlist);
+		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster, $show_playlist,$final_options);
 
 	} else {
 
@@ -575,7 +602,27 @@ function simian_tag_process($atts, $type){
 
 }
 
-function simian_load_reel($reelid, $width, $height, $type="web", $poster, $show_playlist){
+function wp_get_reel($reel_id){
+
+	global $wpdb;
+	
+	$reel = $wpdb->get_row(sprintf("SELECT COUNT(reel_id) as count, reel_title from %1s WHERE reel_id = %2d AND reel_freshness > '%3s'",$wpdb->prefix . "simian_reels",$reel_id,date('c',strtotime("-".get_option('simian_cache_time')." minutes"))));
+	
+	return $reel;
+
+}
+
+function wp_get_playlist($reel_id){
+
+	global $wpdb;
+	
+	$playlist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_thumb, media_width, media_height  FROM %1s WHERE reel_id = %2d",$wpdb->prefix . "simian_media",$reel_id));
+	
+	return $playlist;
+
+}
+
+function simian_load_reel($reel_id, $width, $height, $type="web", $poster, $show_playlist,$final_options){
 
 	global $wpdb;
 
@@ -592,56 +639,36 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster, $show_
 			break;
 	}
 
-	$result = $wpdb->get_row(sprintf("SELECT COUNT(reel_id) as count, reel_title from %1s WHERE reel_id = %2d AND reel_freshness > '%3s'",$wpdb->prefix . "simian_reels",$reelid,date('c',strtotime("-".get_option('simian_cache_time')." minutes"))));
+	$reel = wp_get_reel($reel_id);
 
-	if($result->count == 0){
+	if($reel->count == 0){
 	
-		$html .= "Second Run";
-		simian_get_reel($reelid);
-		$result = $wpdb->get_row(sprintf("SELECT COUNT(reel_id) as count, reel_title from %1s WHERE reel_id = %2d AND reel_freshness > '%3s'",$wpdb->prefix . "simian_reels",$reelid,date('c',strtotime("-".get_option('simian_cache_time')." minutes"))));
+		//cache the reels via API
+		simian_get_reel($reel_id);
+		
+		//try again
+		$reel = wp_get_reel($reel_id);
 	
 	}
 
-	if($result->count > 0){
+	if($reel->count > 0){
 
-		$medialist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_thumb, media_width, media_height  FROM %1s WHERE reel_id = %2d",$wpdb->prefix . "simian_media",$reelid));
-
-		$dom_id = "simreel_" . $reelid;
+		$dom_id = "simreel_" . $reel_id;
 
 		$html .= "<div id=\"" . $dom_id . "\" class=\"reel\">";
 		
-		$html .= "<h2 class=\"reel_title\">" . $result->reel_title . "</h2>";
-		
-		$html .= "<dl class=\"current_video\">";
-		
-		$html .= "<dt class=\"current_video_title\">" . $medialist[0]->media_title . "</dt>";
-		
-		$html .= "<dd class=\"current_video_player\">";		
-		
-		$customSize = false;
-		if($height === null){
-		
-			 //use API dimensions
-			 $height = $medialist[0]->media_height;
-			 $width = $medialist[0]->media_width;
-		
-		} else {
-		
-			$customSize = true;
-			$width = round(($medialist[0]->media_width/$medialist[0]->media_height)*$height);
-		
+		if($final_options['reel_title'] != false){
+			$html .= "<h2 class=\"reel_title\">" . $reel->reel_title . "</h2>";
 		}
+				
+		$playlist = wp_get_playlist($reel_id);
 		
-		// main player
-		$html .= simian_movie_html($dom_id,$medialist[0]->media_url,$medialist[0]->media_thumb, $width, $height, $poster);
-		$html .= "</dd>\n";
+		// current video player
+		$html .= simian_movie_html($dom_id,$playlist[0],$final_options);
 		
-		
-		$html .= "</dl>\n";
-		
-		if($show_playlist == true){
+		if($show_playlist != false){
 
-			$html .= simian_show_reel($simian_url,$dom_id,$medialist, $customSize, $height);
+			$html .= simian_show_playlist($simian_url,$dom_id,$playlist, $customSize, $height);
 
 		}
 
@@ -651,21 +678,21 @@ function simian_load_reel($reelid, $width, $height, $type="web", $poster, $show_
 			
 	} else {
 
-		$html .= "No Reel Found (Bad Reel id?)";
+		$html .= "No Reel Found (Bad Reel ID?)";
 
 	}
 
 	return $html;
 }
 
-function simian_show_reel($simian_url,$dom_id,$medialist,$customSize, $height){
+function simian_show_playlist($simian_url,$dom_id,$playlist,$customSize, $height){
 
 	$html = "";
 
 	$html .= "<dl class=\"playlist\">\n";
 	
 	$firstSelect = true;
-	foreach($medialist as $mediaitem){
+	foreach($playlist as $mediaitem){
 	
 		if($firstSelect){
 		
@@ -708,15 +735,37 @@ function simian_show_reel($simian_url,$dom_id,$medialist,$customSize, $height){
 
 }
 
-function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height, $poster){
+function simian_movie_html($dom_id,$video,$final_options){
 
 	$dom_id = $dom_id . "_mov";
 
 	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" .  "/assets/";
 
-	$movie_url =  $simian_url . $mediaurl;
+	$movie_url =  $simian_url . $video->media_url;
 
 	$html = "";
+	
+	$html .= "<dl class=\"current_video\">";
+		
+		$html .= "<dt class=\"current_video_title\">" . $video->media_title . "</dt>";
+		
+		$html .= "<dd class=\"current_video_player\">";		
+		
+		$customSize = false;
+		if(isset($height) && $height === null){
+		
+			 //use API dimensions
+			 $height = $video->media_height;
+			 $width = $video->media_width;
+		
+		} else {
+		
+			$customSize = true;
+			$width = round(($video->media_width / $video->media_height) * $height);
+		
+		}
+	
+	
 	//poster
 	if($poster === true){
 
@@ -731,6 +780,10 @@ function simian_movie_html($dom_id,$mediaurl,$thumb,$width,$height, $poster){
 		$html .= "</script>";
 
 	}
+	
+	$html .= "</dd>\n";
+		
+	$html .= "</dl>\n";
 
 	return $html;
 }
