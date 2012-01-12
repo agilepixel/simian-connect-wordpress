@@ -312,8 +312,8 @@ function simian_client_config(){
 		admin_update_checkbox("showPoster","simian_default_showposters");
 		
 		//Playlist Defaults
-		$changes = admin_update_text("simianDefaultWidth","simian_default_width");
-		$changes = admin_update_text("simianDefaultHeight","simian_default_height");
+		$changes = admin_update_text("simianDefaultThumbnailWidth","simian_default_thumb_width");
+		$changes = admin_update_text("simianDefaultThumbnailHeight","simian_default_thumb_height");
 		admin_update_checkbox("simianDefaultPlaylistTitles","simian_default_playlist_titles");			
 	}
 
@@ -634,11 +634,11 @@ function simian_load_reel($reel_id, $type="web", $atts){
 		$playlist = wp_get_playlist($reel_id);
 		
 		// current video player
-		$html .= simian_video_html($dom_id,$playlist[0],$atts);
+		$html .= simian_video_html($simian_url,$dom_id,$playlist[0],$atts);
 		
 		if($final_options['show_playlist'] != false){
 
-			//$html .= simian_show_playlist($simian_url,$dom_id,$atts);
+			$html .= simian_show_playlist($simian_url,$dom_id,$playlist,$atts);
 
 		}
 
@@ -655,14 +655,14 @@ function simian_load_reel($reel_id, $type="web", $atts){
 	return $html;
 }
 
-function simian_video_html($dom_id,$video,$atts){
+function simian_video_html($simian_url,$dom_id,$video,$atts){
 			
 	/* video options */
 	$final_options = array();
 	$final_options['video_title'] = simian_tag_boolean($atts,"video_title","simian_default_show_current_title", array("show","hide"));
 	$final_options['poster'] = simian_tag_boolean($atts,"poster","simian_default_showposters", array("show","hide"));
 	
-	//defaults from db
+	//width & height
 	$vdim = array();
 	$vdim['width'] = intval(get_option('simian_default_width'));
 	$vdim['height'] = intval(get_option('simian_default_height'));
@@ -677,8 +677,6 @@ function simian_video_html($dom_id,$video,$atts){
 	else { $vdim['resize_mode'] = "use_default"; }
 		
 	$dom_id = $dom_id . "_mov";
-
-	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" .  "/assets/";
 
 	$movie_url =  $simian_url . $video->media_url;
 
@@ -699,14 +697,14 @@ function simian_video_html($dom_id,$video,$atts){
 		break;
 		case "aspect_width":
 		
-			$height = $video->media_height;
+			$height = $vdim['height'];
 			$width = round(($video->media_width / $video->media_height) * $height);
 		
 		break;
 		case "aspect_height":
 		
-			$width = $video->media_width;
-			$height = round(($video->media_width / $video->media_height) * $width);
+			$width = $vdim['width'];
+			$height = round(($video->media_height / $video->media_width) * $width);
 		
 		break;
 		case "use_default":
@@ -739,7 +737,29 @@ function simian_video_html($dom_id,$video,$atts){
 	return $html;
 }
 
-function simian_show_playlist($simian_url,$dom_id,$playlist,$customSize, $height){
+function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
+
+	
+	/* playlist options */
+	$final_options = array();
+	$final_options['thumb_titles'] = simian_tag_boolean($atts,"thumb_titles","simian_default_playlist_titles", array("show","hide"));
+	
+	//width & height
+	$original_width = 129;
+	$original_height = 96;
+	$vdim = array();
+	$vdim['width'] = intval(get_option('simian_default_thumb_width'));
+	$vdim['height'] = intval(get_option('simian_default_thumb_height'));
+	
+	//tag settings
+	if(isset($atts['thumb_width'])){ $vdim['width'] = intval($atts['thumb_width']); }
+	if(isset($atts['thumb_height'])){ $vdim['height'] = intval($atts['thumb_height']); }
+	
+	if($vdim['width'] == 0 && $vdim['height'] == 0){ $vdim['resize_mode'] = "original"; }
+	else if($vdim['width'] == 0){ $vdim['resize_mode'] = "aspect_width"; }
+	else if($vdim['height'] == 0){ $vdim['resize_mode'] = "aspect_height"; }
+	else { $vdim['resize_mode'] = "use_default"; }
+	
 
 	$html = "";
 
@@ -747,27 +767,64 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$customSize, $height
 	
 	$firstSelect = true;
 	foreach($playlist as $mediaitem){
-	
-		if($firstSelect){
 		
-			$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
-			$firstSelect = false;
+		if($final_options['thumb_titles'] != false){
+			if($firstSelect){
+			
+				$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
+				$firstSelect = false;
+			
+			} else {
+			
+				$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
+			
+			}
+		}
 		
-		} else {
+		switch($vdim['resize_mode']){
+		case "original":
 		
-			$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
+			$width = $original_width;
+			$height = $original_height;
 		
+		break;
+		case "aspect_width":
+		
+			$height = $vdim['height'];
+			$width = round(($original_width / $original_height) * $height);
+		
+		break;
+		case "aspect_height":
+		
+			$width = $vdim['width'];
+			$height = round(($original_height / $original_width) * $width);
+		
+		break;
+		case "use_default":
+		default:
+			
+			$width = $vdim['width'];
+			$height = $vdim['height'];
 		}
 	
 		$html .= "<dd class=\"simian_media_".$mediaitem->media_id."\">";
 		
 		$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
-			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" />";
+			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" width=\"".$width."\" height=\"".$height."\" />";
 		$html .= "</a>";
 		
-		$html .= "</dd>\n";
+		$html .= "</dd>\n";	
 		
-		wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
+	}
+	
+	$html .= "</dl>\n";
+	
+	return $html;
+
+}
+function call_js_size(){
+
+	wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
 		
 		if($customSize){
 		
@@ -780,12 +837,6 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$customSize, $height
 		}
 		
 		wp_localize_script( 'simian_size', 'sim_dim'.$mediaitem->media_id, $data );
-		
-	}
-	
-	$html .= "</dl>\n";
-	
-	return $html;
 
 }
 
