@@ -254,19 +254,30 @@ function simian_ajax_get_reel() {
 }
 
 function simian_settings_init() {
-
-	add_option('simian_client_api_key','');
+	
+	//API
 	add_option('simian_client_company_id','');
+	add_option('simian_client_api_key','');
 	add_option('simian_cache_time','3600');
 
-	add_option('simian_default_show_playlist','0');
-	add_option('simian_default_showposters','1');
-
+	//Reel Defaults
+	add_option('simian_default_show_title','1');
+	add_option('simian_default_show_current_title','1');
+	add_option('simian_default_show_playlist','1');
+	add_option('simian_default_autoplay','0');
 	add_option('simian_use_jw','0');
-
+	
+	//Current Video Defaults
 	add_option('simian_default_width','640');
 	add_option('simian_default_height','480');
-
+	add_option('simian_default_showposters','1');
+	
+	//Playlist Defaults
+	add_option('simian_default_thumb_width','240');
+	add_option('simian_default_thumb_height','180');
+	add_option('simian_default_playlist_titles','1');
+	
+	//Debug
 	add_option('simian_debug_text','');
 
 }
@@ -275,7 +286,7 @@ function simian_client_config(){
 
 	$html = "";
 
-	$html .= "<div class=\"wrap\">";
+	$html .= "<div class=\"simian-admin wrap\">";
 	$html .= "<h2>Simian Connect Configuration</h2>";
 
 	$changes = false;
@@ -313,6 +324,8 @@ function simian_client_config(){
 	
 	$html .= "<h3>API</h3>";
 	
+		$html .= "<dl class=\"settings-group\">";
+	
 		$html .= admin_setting_input("simianName","Simian Company Name",get_option('simian_client_company_id'),
 		"e.g. <strong>companyname</strong>.gosimian.com");
 		
@@ -321,8 +334,12 @@ function simian_client_config(){
 		
 		$html .= admin_setting_input("simianTime","Cache time",get_option('simian_cache_time'),
 		"Time (in minutes) that reel/media data is cached in the Wordpress DB for quick retrival.");
+		
+		$html .= "</dl>";
 	
 	$html .= "<h3>Reel Defaults</h3>";
+	
+		$html .= "<dl class=\"settings-group\">";
 	
 		$html .= admin_setting_input("showTitle","Show Reel Title", checked( 1, get_option('simian_default_show_title'), false ),
 		"Show the reel title by default.","checkbox");
@@ -333,13 +350,17 @@ function simian_client_config(){
 		$html .= admin_setting_input("showPlaylist","Show Playlist", checked( 1, get_option('simian_default_show_playlist'), false ),
 		"Show the playlist by default.","checkbox");
 		
-		$html .= admin_setting_input("autoPlayPlaylist","Auto Play Playlist", checked( 1, get_option('simian_default_autoplay'), false ),
-		"Play each video in this reel on page load.","checkbox");
+		$html .= admin_setting_input("autoPlayPlaylist","Auto-Play Playlist", checked( 1, get_option('simian_default_autoplay'), false ),
+		"Play each video in the playlist on page load automatically in sequence.","checkbox");
 			
 		$html .= admin_setting_input("useJW","Use HTML5/Flash JW Player", checked(1, get_option('simian_use_jw'), false),
 		"Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. If unsure, leave unchecked.</strong></span>","checkbox");
+		
+		$html .= "</dl>";
 	
 	$html .= "<h3>Current Video Defaults</h3>";
+	
+		$html .= "<dl class=\"settings-group\">";
 	
 		$html .= admin_setting_input("simianDefaultWidth","Video Width",get_option('simian_default_width'),
 		"px (e.g. 640). Set to 0 to use the actual video width or to auto calculate if a height is given.");
@@ -349,8 +370,12 @@ function simian_client_config(){
 		
 		$html .= admin_setting_input("showPoster","Show Poster Frame?", checked( 1, get_option('simian_default_showposters'), false ),
 		"Show a still image on page load, instead of loading the video. Poster frames can be used to stop auto loading of video.","checkbox");
+		
+		$html .= "</dl>";
 	
 	$html .= "<h3>Playlist Defaults</h3>";
+	
+		$html .= "<dl class=\"settings-group\">";
 		
 		$html .= admin_setting_input("simianDefaultThumbnailWidth","Thumbnail Width",get_option('simian_default_thumb_width'),
 		"px (e.g. 240). Set to 0 to use the actual thumb height or to auto calculate if a height is given.");
@@ -359,7 +384,9 @@ function simian_client_config(){
 		"px (e.g. 180). Set to 0 to use the actual thumb height or to auto calculate if a height is given.");
 		
 		$html .= admin_setting_input("simianDefaultPlaylistTitles","Show Titles on playlist",get_option('simian_default_playlist_titles'),
-		"px (e.g. 180). Set to 0 to use the actual thumb height or to auto calculate if a height is given.");
+		"px (e.g. 180). Set to 0 to use the actual thumb height or to auto calculate if a height is given.","checkbox");
+		
+		$html .= "</dl>";
 
 	$html .= "<p class=\"submit\"><input type=\"submit\" name=\"submit\" id=\"submit\" class=\"button-primary\" value=\"Save Changes\"></p>";
 	$html .= "</form>";
@@ -417,18 +444,18 @@ function admin_setting_input($id, $label, $value, $desc,$type="text"){
 	
 	$html = "";
 
-	$html .= '<dt>'.$label.'</dt>';
+	$html .= "<dt><label for=\"".$id."\">". $label . "</label></dt>";
 	
 	switch($type){
 	case "checkbox":
-		$html .= '<dd><input name="'.$id.'" type="checkbox" id="'.$id.'" value="1" '. $value .' class="regular-text" /></dd>';
+		$html .= "<dd><input name=\"" . $id . "\" type=\"checkbox\" id=\"" . $id . "\" value=\"1\" ". $value . "class=\"regular-text\" /></dd>";
 	break;
 	case "text":
 	default:
-		$html .= '<dd><input name="'.$id.'" type="text" id="'.$id.'" value="'. $value .'" class="regular-text" /></dd>';
+		$html .= "<dd><input name=\"" . $id . "\" type=\"text\" id=\"" . $id . "\" value=\"" . $value ."\" class=\"regular-text\" /></dd>";
 	}
 	
-	$html .= '<dd class="description">'.$desc.'</dd>';
+	$html .= "<dd class=\"description\">".$desc."</dd>";
 
 	return $html;
 
@@ -502,8 +529,11 @@ function simian_tag_process($atts, $type){
 	
 	$html = "error";
 	if(isset($atts['id'])){
+	
+		/* reel */
 
-		/* current video width & height */
+		/* current video */
+		
 		$d_width = intval(get_option('simian_default_width'));
 		$d_height = intval(get_option('simian_default_height'));
 
@@ -515,7 +545,6 @@ function simian_tag_process($atts, $type){
 		else if($d_width != 0){ $width = $d_width; }
 		else { $width = null; }
 
-		/* current video poster */
 		$poster = get_option('simian_default_showposters');
 
 		if($poster === "1"){ $poster = true; }
@@ -528,12 +557,11 @@ function simian_tag_process($atts, $type){
 				
 		}
 		
-		/* show playlist */
+		/* playlist */
 		$show_playlist = get_option('simian_default_show_playlist');
 		
 		if(isset($atts['playlist']) && $atts['playlist'] == "show"){ $show_playlist = true; }
-		else if(isset($atts['playlist']) && $atts['playlist'] == "hide"){ $show_playlist = false; }
-		
+		else if(isset($atts['playlist']) && $atts['playlist'] == "hide"){ $show_playlist = false; }	
 		
 		$html = simian_load_reel($atts['id'], $width, $height, $type, $poster, $show_playlist);
 

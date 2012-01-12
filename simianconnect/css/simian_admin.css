@@ -27,3 +27,36 @@
 #simian_reel_hover p{
 	margin:0;
 }
+
+.simian-admin h2, h3 {
+clear: both;
+padding: 25px 0 0 0; 
+margin: 0; 
+}
+
+.simian-admin .submit {
+clear: both;
+}
+
+dl.settings-group {
+clear: both;
+}
+
+dl.settings-group dt, dl.settings-group dd {
+padding: 10px;
+float: left;
+margin: 0;
+}
+
+dl.settings-group dt {
+clear: both;
+width:180px;
+}
+
+dl.settings-group dd.description {
+padding: 10px;
+}
+
+dl.settings-group dd input[type="checkbox"] {
+width:auto;
+}
