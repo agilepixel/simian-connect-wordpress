@@ -1,0 +1,16 @@
+.reel dl, .reel dd, .reel dt 
+{ 
+margin: 0;
+padding: 0;
+display: block;
+}
+
+.reel img, .reel embed, .reel object{
+display: block;
+max-width: none;
+border: none;
+}
+
+.QTP { 
+display: block;
+}
