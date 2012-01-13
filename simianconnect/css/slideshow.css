@@ -1,3 +1,20 @@
-.reel dl.playlist dd {
+.reel dl.playlist dl {
 float: left;
+position: relative;
+}
+
+.reel dl.playlist dt {
+position: absolute;
+font-size: 11px;
+bottom: 0;
+text-align: center;
+width: 100%;
+background: #fff;
+zoom: 1;
+filter: alpha(opacity=50);
+opacity: 0.5;
+}
+
+.reel dl.playlist dt.selected {
+background: #000;
 }

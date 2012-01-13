@@ -728,9 +728,15 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
 
 	$html = "";
 	
-		
 		// naughty bit of inline styles
 		$html .= "<dl class=\"current_video\" style=\"width:".$dim['width']."px;\">";
+		
+		if($final_options['video_title'] != false){
+
+			$html .= "<dt class=\"current_video_title\">".$video->media_title."</dt>";
+
+		}
+		
 		$html .= "<dd class=\"current_video_player\">";
 	
 	
@@ -774,8 +780,12 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
 	$html .= "<dl class=\"playlist\">\n";
 	
+		$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
+	
 	$firstSelect = true;
 	foreach($playlist as $mediaitem){
+	
+		$html .= "<dl class=\"simian_media_".$mediaitem->media_id."\">\n";
 		
 		if($final_options['thumb_titles'] != false){
 			if($firstSelect){
@@ -795,7 +805,7 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 		
 		$size_array['simian_media_'.$mediaitem->media_id] = $video_dim;
 	
-		$html .= "<dd class=\"simian_media_".$mediaitem->media_id."\">";
+		$html .= "<dd class=\"thumb\">";
 		
 		$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
 		
@@ -805,9 +815,12 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 		
 		
 		
-		$html .= "</dd>\n";	
+		$html .= "</dd>\n";
+		$html .= "</dl>\n";
 		
 	}
+	
+	$html .= "</dd>\n";
 	
 	wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
 	

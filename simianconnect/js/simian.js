@@ -19,6 +19,8 @@ $j(document).ready(function() {
 	$j('dl.playlist').on('click','dd',function(event) {
 	
 		event.preventDefault();
+		
+		var $thumb = $j(this).parent();
 
 		$j('dl.playlist .selected.hoverOver').removeClass('selected').removeClass('hoverOver');
 		$j(this).children('.overlay').addClass('selected').addClass('hoverOver');
@@ -28,14 +30,17 @@ $j(document).ready(function() {
 		var $p = $j("#"+$reel_id);
 
 		var $m = $j("<div />").attr('id', $reel_id +"_mov");
-
 		$p.find('.current_video_player').empty().append($m);
 		
-		var $dim = window[$reel_id+'_sizes'][$j(this).attr('class')];
+		//grab the dimensions from the dynamic wp localization
+		var $dim = window[$reel_id+'_sizes'][$thumb.attr('class')];
 		
-		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),$dim['width'],$dim['height'],"true",$j(this).find('img').attr('src'));
+		var $img = $j(this).find('img');
+		
+		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),$dim['width'],$dim['height'],"true",$img.attr('src'));
 
-		$p.find('.mediaTitle').html($j(this).siblings('img').first().attr('title'));
+		$p.find('.current_video_title').html($img.attr('title'));
+
 
 		return false;
 	});

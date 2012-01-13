@@ -1,3 +1,7 @@
+.reel {
+clear: both;
+}
+
 .reel dl, .reel dd, .reel dt 
 { 
 margin: 0;
