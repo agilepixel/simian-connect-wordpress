@@ -3,7 +3,7 @@
  Plugin Name: Simian Connect
  Plugin URI: http://thecodepharmacy.co.uk/simian-connect/
  Description: Access all your Simian&trade; media and easily add them to your posts. Uses the Simian&trade; XML API.
- Version: 0.3
+ Version: 0.4
  Author: The Code Pharmacy
  Author URI: http://thecodepharmacy.co.uk/
  License: Proprietary
@@ -510,6 +510,7 @@ function simian_call_requires(){
 	
 		wp_enqueue_script('swfobject');
 		wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
+		wp_localize_script('simianjw','jw_swf',plugin_dir_url(__FILE__).'jwplayer/player.swf');
 	
 	} else {
 	
@@ -750,11 +751,17 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
 		
 		// just go ahead and embed the movie!
 		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
-
+		
 		$html .= "<script type=\"text/javascript\">";
+		
+		if(get_option('simian_use_jw')==1){
+			$html .= "jwplayer(\"".$dom_id."\").setup({autostart: false,file: \"".$movie_url."\",flashplayer: \"".plugin_dir_url(__FILE__)."jwplayer/player.swf\",height: ".$dim['height'].",width: ".$dim['width']."});";
+		} else {
 			$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$dim['width']."','".$dim['height']."', 'false', 'false');";
+		}
+		
 		$html .= "</script>";
-
+		
 	}
 	
 	$html .= "</dd>\n";

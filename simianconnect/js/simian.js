@@ -1,85 +1,100 @@
 //QT posters
-if (typeof(QTP) != "undefined" && typeof(QTP.Poster) != "undefined") { 
+if (typeof (QTP) != "undefined" && typeof (QTP.Poster) != "undefined") {
 	QTP.Poster.prototype.clickText = "Click To Play";
 
 	QTP.Poster.prototype.attributes = {
-			controller: 'false',
-			autoplay: 'true', 
-			bgcolor: 'black', 
-			scale: 'tofit',
-			postdomevents: 'true'
+		controller : 'false',
+		autoplay : 'true',
+		bgcolor : 'black',
+		scale : 'tofit',
+		postdomevents : 'true'
 	};
 }
 
-//reel movie loading
+// reel movie loading
 var $j = jQuery.noConflict();
 
-$j(document).ready(function() {
+$j(document).ready(
+		function() {
 
-	$j('dl.playlist').on('click','dd',function(event) {
-	
-		event.preventDefault();
-		
-		var $thumb = $j(this).parent();
+			$j('dl.playlist').on(
+					'click',
+					'dd',
+					function(event) {
 
-		$j('dl.playlist .selected.hoverOver').removeClass('selected').removeClass('hoverOver');
-		$j(this).children('.overlay').addClass('selected').addClass('hoverOver');
-		
-		//get the main video player id
-		var $reel_id = $j(this).children('a').attr('rel');
-		var $p = $j("#"+$reel_id);
+						event.preventDefault();
 
-		var $m = $j("<div />").attr('id', $reel_id +"_mov");
-		$p.find('.current_video_player').empty().append($m);
-		
-		//grab the dimensions from the dynamic wp localization
-		var $dim = window[$reel_id+'_sizes'][$thumb.attr('class')];
-		
-		var $img = $j(this).find('img');
-		
-		qtEmbed($reel_id +"_mov",$j(this).children('a').attr('href'),$dim['width'],$dim['height'],"true",$img.attr('src'));
+						var $thumb = $j(this).parent();
 
-		$p.find('.current_video_title').html($img.attr('title'));
+						$j('dl.playlist .selected.hoverOver').removeClass(
+								'selected').removeClass('hoverOver');
+						$j(this).siblings('.thumb_title').addClass('selected')
+								.addClass('hoverOver');
+						// get the main video player id
+						var $reel_id = $j(this).children('a').attr('rel');
+						var $p = $j("#" + $reel_id);
 
+						var $m = $j("<div />").attr('id', $reel_id + "_mov");
+						$p.find('.current_video_player').empty().append($m);
 
-		return false;
-	});
+						// grab the dimensions from the dynamic wp localization
+						var $dim = window[$reel_id + '_sizes'][$thumb
+								.attr('class')];
 
-	$j('dl.playlist').on('mouseenter','li',function() {
-		$j(this).children('.overlay').addClass('hoverOver');
-	});
+						var $img = $j(this).find('img');
 
-	$j('dl.playlist').on('mouseleave','li',function() {
-		if(!$j(this).children('.overlay').hasClass('selected')){
-			$j(this).children('.overlay').removeClass('hoverOver');
-		}
-	});
+						qtEmbed($reel_id + "_mov", $j(this).children('a').attr(
+								'href'), $dim['width'], $dim['height'], "true",
+								$img.attr('src'));
 
+						$p.find('.current_video_title')
+								.html($img.attr('title'));
 
-});
+						return false;
+					});
 
-function qtEmbed($dom_id,$src,$width,$height,$autostart,$poster){
+			$j('dl.playlist').on('mouseenter', 'dd.thumb', function() {
+				$j(this).siblings('.thumb_title').addClass('hoverOver');
+			});
 
+			$j('dl.playlist').on('mouseleave', 'dd.thumb', function() {
+				if (!$j(this).siblings('dt').hasClass('selected')) {
+					$j(this).siblings('.thumb_title').removeClass('hoverOver');
+				}
+			});
 
-	if(typeof(QTP) != "undefined" && typeof(QTP.Poster) != "undefined" && $poster != 'false') {
+		});
 
-		
-		var $parent = $j('#'+$dom_id).parent();
-		var $new = "<a href=\""+$src+"\" rel=\"qtposter\" jscontroller=\"false\"><img src=\""+$poster+"\" width=\""+$width+"\" height=\""+$height+"\" /></a>";
+function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
+
+	if (typeof (QTP) != "undefined" && typeof (QTP.Poster) != "undefined"
+			&& $poster != 'false') {
+
+		var $parent = $j('#' + $dom_id).parent();
+		var $new = "<a href=\"" + $src
+				+ "\" rel=\"qtposter\" jscontroller=\"false\"><img src=\""
+				+ $poster + "\" width=\"" + $width + "\" height=\"" + $height
+				+ "\" /></a>";
 		$($dom_id).replace($new);
 		QTP.Poster.instantiatePosters();
-		if($autostart==="true"){
+		if ($autostart === "true") {
 			$parent.children('.QTP').click();
 		}
-		
-	} else if (typeof(QT) != "undefined") { 
-	
-		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '','scale','tofit', 'autostart',$autostart);
+
+	} else if (typeof (QT) != "undefined") {
+
+		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '',
+				'scale', 'tofit', 'autostart', $autostart);
 		$($dom_id).replace($new);
 
 	} else {
-		
-		console.log("Quicktime not loaded!!!");
-		
+		jwplayer($dom_id).setup({
+			autostart : true,
+			controlbar : "none",
+			file : $src,
+			flashplayer : jw_swf,
+			height : $height,
+			width : $width
+		});
 	}
 }

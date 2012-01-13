@@ -3,7 +3,7 @@ Contributors: code418
 Tags: simian
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 0.3
+Stable tag: 0.4
 
 Connector for Simian XML API
 
@@ -29,5 +29,5 @@ the directory of the stable readme.txt, so in this case, `/tags/4.3/screenshot-1
 
 == Changelog ==
 
-= 0.2 =
-* Initial Version
+= 0.4 =
+* Initial Release
