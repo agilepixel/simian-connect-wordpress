@@ -44,7 +44,7 @@ $j(document).ready(
 						var $img = $j(this).find('img');
 
 						qtEmbed($reel_id + "_mov", $j(this).children('a').attr(
-								'href'), $dim['width'], $dim['height'], "true",
+								'href'), $dim['width'], $dim['height'], "false",
 								$img.attr('src'));
 
 						$p.find('.current_video_title')
@@ -60,6 +60,15 @@ $j(document).ready(
 			$j('dl.playlist').on('mouseleave', 'dd.thumb', function() {
 				if (!$j(this).siblings('dt').hasClass('selected')) {
 					$j(this).siblings('.thumb_title').removeClass('hoverOver');
+				}
+			});
+			$j('.current_video_player').on('qt_ended', function(){
+				//video has finished playing - move onto next in playlist (QT)
+				var nextItem = $j(this).parent('.current_video').siblings('.playlist').find('.selected').parent('dl').next();
+				if (nextItem.length > 0){
+					nextItem.children('dd').click();
+				} else {
+					$j(this).parent('.current_video').siblings('.playlist').find('dd.thumb').first().click();
 				}
 			});
 
@@ -84,7 +93,7 @@ function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 	} else if (typeof (QT) != "undefined") {
 
 		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '',
-				'scale', 'tofit', 'autostart', $autostart);
+				'scale', 'tofit', 'autostart', $autostart, 'EnableJavaScript', 'True', 'postdomevents', 'True','emb#name', $dom_id + '_embed');
 		$($dom_id).replace($new);
 
 	} else {
