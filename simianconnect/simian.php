@@ -149,6 +149,14 @@ function simian_ajax_select_reel() {
 	
 	$reels = $wpdb->get_results(sprintf('SELECT r.reel_id, r.reel_title, r.reel_time, m.media_thumb from %1$s r LEFT JOIN %2$s m ON r.reel_id = m.reel_id GROUP BY r.reel_id ORDER BY r.reel_time DESC;',$wpdb->prefix . "simian_reels",$wpdb->prefix . "simian_media"));
 	
+	if(count($reels)==0){
+		$html .= "<p id=\"simianCacheNotice\">No Reels Found. Automatically filling cache...</p>";
+		$html .= "<p id=\"simianCacheStatus\">&nbsp;</p>";
+		$html .= "<script type=\"text/javascript\">";
+		$html .= "cache_reel_adhoc()";
+		$html .= "</script>";
+	}
+	
 	$html .= "<ul class=\"reel_select\">";
 	
 	foreach ($reels as $reel){
@@ -156,11 +164,7 @@ function simian_ajax_select_reel() {
 	}
 	
 	$html .= "</ul>";
-	if(count($reels)==0){
-		$html .= "<p>No Reels Found. Make sure you run Simian->Cache Reels first.</p>";
-	}
-
-	$html .= "<div id=\"simian_reel_hover\"><h3>Title</h3><p>other info</p></div>";
+	
 	
 	echo $html;
 
@@ -187,7 +191,9 @@ function simian_get_reel($reel_id){
 		return false;
 
 	} else {
-			
+
+		$responseArray = array();
+		
 		$return->reel->name = str_replace("'", "\\'", $return->reel->name);
 
 		$reeltime = date("Y-m-d H:i:s",strtotime($return->reel->create_date));
@@ -200,7 +206,10 @@ function simian_get_reel($reel_id){
 		$reeltime);
 
 		$wpdb->query($insertQuery);
-
+		
+		$responseArray['reel_id'] = (int) $return->reel->id;
+		$responseArray['reel_name'] = (string) $return->reel->name;
+		
 		foreach($return->media as $mediaitem){
 				
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
@@ -218,8 +227,12 @@ function simian_get_reel($reel_id){
 			);
 
 			$wpdb->query($insertMedia);
+			
+			if(!isset($responseArray['reel_thumb'])){
+				$responseArray['reel_thumb'] = (string) $mediaitem->thumbnail;
+			}
 		}
-		return true;
+		return $responseArray;
 	}
 
 }
@@ -235,8 +248,9 @@ function simian_ajax_get_reel() {
 	$jsonreturn = array();
 
 	if(isset($_POST['reel_id'])){
-		if(simian_get_reel($_POST['reel_id'])){
+		if($reelinfo = simian_get_reel($_POST['reel_id'])){
 			$jsonreturn['status'] = "OK";
+			$jsonreturn['details'] = $reelinfo;
 			echo json_encode($jsonreturn);
 			die();
 		} else {

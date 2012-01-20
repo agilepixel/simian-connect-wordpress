@@ -13,20 +13,6 @@
 .reel_select li p, .reel_select li h4{
 	margin:0;
 }
-#simian_reel_hover{
-	position:absolute;
-	top:0px;
-	left:0px;
-	width:130px;
-	background:#cccc00;
-	display:none;
-}
-#simian_reel_hover h1{
-	margin:0;
-}
-#simian_reel_hover p{
-	margin:0;
-}
 
 .simian-admin h2, h3 {
 clear: both;
@@ -59,4 +45,7 @@ padding: 10px;
 
 dl.settings-group dd input[type="checkbox"] {
 width:auto;
+}
+#simianCacheStatus{
+	clear:both;
 }
