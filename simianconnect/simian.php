@@ -199,7 +199,6 @@ function simian_get_reel($reel_id){
 		$reeltime = date("Y-m-d H:i:s",strtotime($return->reel->create_date));
 
 		$insertQuery = sprintf('INSERT INTO %1$s (reel_id,reel_title,reel_freshness,reel_time) VALUES (%2$d,\'%3$s\',NOW(),\'%4$s\') ON DUPLICATE KEY UPDATE reel_title = \'%3$s\', reel_freshness = NOW(), reel_time = \'%4$s\';' ,
-
 		$wpdb->prefix . "simian_reels",
 		$return->reel->id,
 		$return->reel->name,
@@ -210,12 +209,12 @@ function simian_get_reel($reel_id){
 		$responseArray['reel_id'] = (int) $return->reel->id;
 		$responseArray['reel_name'] = (string) $return->reel->name;
 
+		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES ";
 		foreach($return->media as $mediaitem){
-
+			
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
 
-			$insertMedia = sprintf('INSERT INTO %1$s (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES (%2$d,%3$d,\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',\'%9$s\') ON DUPLICATE KEY UPDATE media_title = \'%4$s\',media_thumb = \'%5$s\',media_url = \'%6$s\',media_mobile_url = \'%7$s\', media_width = \'%8$s\', media_height = \'%9$s\'',
-			$wpdb->prefix . "simian_media",
+			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\'),',
 			$mediaitem->id,
 			$return->reel->id,
 			$mediaitem->title,
@@ -225,13 +224,15 @@ function simian_get_reel($reel_id){
 			$mediaitem->media_width,
 			$mediaitem->media_height
 			);
-
-			$wpdb->query($insertMedia);
+			$compoundQuery .= $insertMedia;
 
 			if(!isset($responseArray['reel_thumb'])){
 				$responseArray['reel_thumb'] = (string) $mediaitem->thumbnail;
 			}
 		}
+		$compoundQuery = substr($compoundQuery, 0, -1);
+		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height)";
+		$wpdb->query($compoundQuery);
 		return $responseArray;
 	}
 
