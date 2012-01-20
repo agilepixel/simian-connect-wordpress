@@ -44,8 +44,8 @@ $j(document).ready(
 						var $img = $j(this).find('img');
 
 						qtEmbed($reel_id + "_mov", $j(this).children('a').attr(
-								'href'), $dim['width'], $dim['height'], "false",
-								$img.attr('src'));
+								'href'), $dim['width'], $dim['height'],
+								"false", $img.attr('src'));
 
 						$p.find('.current_video_title')
 								.html($img.attr('title'));
@@ -62,15 +62,7 @@ $j(document).ready(
 					$j(this).siblings('.thumb_title').removeClass('hoverOver');
 				}
 			});
-			$j('.current_video_player').on('qt_ended', function(){
-				//video has finished playing - move onto next in playlist (QT)
-				var nextItem = $j(this).parent('.current_video').siblings('.playlist').find('.selected').parent('dl').next();
-				if (nextItem.length > 0){
-					nextItem.children('dd').click();
-				} else {
-					$j(this).parent('.current_video').siblings('.playlist').find('dd.thumb').first().click();
-				}
-			});
+			$j('.current_video_player').on('qt_ended', simian_next_playlist);
 
 		});
 
@@ -92,18 +84,43 @@ function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 
 	} else if (typeof (QT) != "undefined") {
 
-		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '',
-				'scale', 'tofit', 'autostart', $autostart, 'EnableJavaScript', 'True', 'postdomevents', 'True','emb#name', $dom_id + '_embed');
+		var $new = QT
+				.GenerateOBJECTText_XHTML($src, $width, $height, '', 'scale',
+						'tofit', 'autostart', $autostart, 'EnableJavaScript',
+						'True', 'postdomevents', 'True', 'emb#name', $dom_id
+								+ '_embed');
 		$($dom_id).replace($new);
 
 	} else {
-		jwplayer($dom_id).setup({
-			autostart : true,
-			controlbar : "none",
-			file : $src,
-			flashplayer : jw_swf,
-			height : $height,
-			width : $width
-		});
+		jwplayer($dom_id).setup(
+				{
+					autostart : false,
+					file : $src,
+					flashplayer : jw_swf,
+					height : $height,
+					width : $width,
+					events : {
+						onComplete : function() {
+							simian_next_playlist(null, $j('#' + this.id)
+									.parents('.current_video_player'));
+						}
+					}
+				});
+	}
+}
+
+function simian_next_playlist(event, origin) {
+	if (autoplay_playlist == 1) {
+		if (!origin) {
+			origin = $j(this);
+		}
+		var nextItem = origin.parent('.current_video').siblings('.playlist')
+				.find('.selected').parent('dl').next();
+		if (nextItem.length > 0) {
+			nextItem.children('dd').click();
+		} else {
+			origin.parent('.current_video').siblings('.playlist').find(
+					'dd.thumb').first().click();
+		}
 	}
 }
