@@ -181,11 +181,11 @@ function simian_get_reel($reel_id){
 	$ch = curl_init($simian_url . "/v2/api/simian/get_reel");
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_id=".$reel_id."&reel_type=web_reels");
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	$response = curl_exec($ch);
 
+	libxml_use_internal_errors(true);
 	if(!$return = simplexml_load_string($response)){
 
 		return false;
