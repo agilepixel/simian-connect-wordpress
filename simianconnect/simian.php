@@ -211,7 +211,7 @@ function simian_get_reel($reel_id){
 
 		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES ";
 		foreach($return->media as $mediaitem){
-			
+				
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
 
 			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\'),',
@@ -802,66 +802,69 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
 
 function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
-	wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
-	$size_array = array();
-
-	/* playlist options */
-	$final_options = array();
-	$final_options['thumb_titles'] = simian_tag_boolean($atts,"thumb_titles","simian_default_playlist_titles", array("show","hide"));
-
-	//thumb width & height
-	$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
-
 	$html = "";
 
-	$html .= "<dl class=\"playlist\">\n";
+	if(count($playlist) >= 2) {
 
-	$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
+		wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
+		$size_array = array();
 
-	$firstSelect = true;
-	foreach($playlist as $mediaitem){
+		/* playlist options */
+		$final_options = array();
+		$final_options['thumb_titles'] = simian_tag_boolean($atts,"thumb_titles","simian_default_playlist_titles", array("show","hide"));
 
-		$html .= "<dl class=\"simian_media_".$mediaitem->media_id."\">\n";
+		//thumb width & height
+		$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
 
-		if($final_options['thumb_titles'] != false){
-			if($firstSelect){
-					
-				$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
-				$firstSelect = false;
-					
-			} else {
-					
-				$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
-					
+		$html .= "<dl class=\"playlist\">\n";
+
+		$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
+
+		$firstSelect = true;
+		foreach($playlist as $mediaitem){
+
+			$html .= "<dl class=\"simian_media_".$mediaitem->media_id."\">\n";
+
+			if($final_options['thumb_titles'] != false){
+				if($firstSelect){
+
+					$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
+					$firstSelect = false;
+
+				} else {
+
+					$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
+
+				}
 			}
+
+			//video width & height (when clicked)
+			$video_dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($mediaitem->media_width, $mediaitem->media_height), $atts);
+
+			$size_array['simian_media_'.$mediaitem->media_id] = $video_dim;
+
+			$html .= "<dd class=\"thumb\">";
+
+			$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
+
+			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" width=\"".$thumb_dim['width']."\" height=\"".$thumb_dim['height']."\" />";
+
+			$html .= "</a>";
+
+
+
+			$html .= "</dd>\n";
+			$html .= "</dl>\n";
+
 		}
 
-		//video width & height (when clicked)
-		$video_dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($mediaitem->media_width, $mediaitem->media_height), $atts);
-
-		$size_array['simian_media_'.$mediaitem->media_id] = $video_dim;
-
-		$html .= "<dd class=\"thumb\">";
-
-		$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
-
-		$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" width=\"".$thumb_dim['width']."\" height=\"".$thumb_dim['height']."\" />";
-			
-		$html .= "</a>";
-
-
-
 		$html .= "</dd>\n";
+
+		wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
+
 		$html .= "</dl>\n";
 
 	}
-
-	$html .= "</dd>\n";
-
-	wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
-
-	$html .= "</dl>\n";
-
 	return $html;
 
 }
