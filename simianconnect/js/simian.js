@@ -19,7 +19,7 @@ $j(document).ready(
 
 			$j('ul.playlist').on(
 					'click',
-					'div.thumb',
+					'div',
 					function(event) {
 
 						event.preventDefault();
@@ -31,7 +31,7 @@ $j(document).ready(
 						$j(this).siblings('.thumb_title').addClass('selected')
 								.addClass('hoverOver');
 						// get the main video player id
-						var $reel_id = $j(this).children('a').attr('rel');
+						var $reel_id = $thumb.find('a').attr('rel');
 						var $p = $j("#" + $reel_id);
 
 						var $m = $j("<div />").attr('id', $reel_id + "_mov");
@@ -41,10 +41,13 @@ $j(document).ready(
 						var $dim = window[$reel_id + '_sizes'][$thumb
 								.attr('class')];
 
-						var $img = $j(this).find('img');
+						var $img = $thumb.find('img');
 
-						qtEmbed($reel_id + "_mov", $j(this).children('a').attr(
-								'href'), $dim['width'], $dim['height'],
+						console.log($thumb);
+						console.log($thumb.find('a'));
+						console.log($thumb.find('a').attr('href'));
+						qtEmbed($reel_id + "_mov", $thumb.find('a')
+								.attr('href'), $dim['width'], $dim['height'],
 								"false", $img.attr('src'));
 
 						$p.find('.current_video_title')
