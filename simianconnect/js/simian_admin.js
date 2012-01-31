@@ -52,7 +52,7 @@ jQuery(document).ready(
 
 
 			$('#simianCacheForm').submit(function() {
-				cache_reel(1, $(this).find('#simianReelMax').first().val());
+				cache_reel(1, $(this).find('#simianReelMax').first().val(),false);
 				return false;
 			});
 
@@ -60,12 +60,17 @@ jQuery(document).ready(
 
 function cache_reel_adhoc() {
 	//TODO currently grabs arbitary number of reels to start someone off - needs to be smarter
-	cache_reel(1, 64);
+	cache_reel(1, 50,true);
 }
 
-function cache_reel(reelid, maxid) {
+function cache_reel_new() {
+	var lastID = parseInt(jQuery('.reel_select li').first().children('a').attr('id').replace('reel_id_',''));
+	cache_reel(lastID+1, lastID+50, true);
+}
 
-	jQuery('#simianCacheStatus').html("Caching reel " + reelid + "/" + maxid);
+function cache_reel(reelid, maxid, morebutton) {
+
+	jQuery('#simianCacheStatus').html("Looking for reel " + reelid + "/" + maxid);
 
 	var data = {
 		action : "simian_ajax_get_reel",
@@ -87,12 +92,17 @@ function cache_reel(reelid, maxid) {
 							+ response.details.reel_id
 							+ '</h4><p class="reel_title">'
 							+ response.details.reel_name + '</p></li>';
-					jQuery('.reel_select').append(newReel);
+					jQuery('.reel_select').prepend(newReel);
 				}
 				if (reelid + 1 <= maxid) {
-					cache_reel(reelid + 1, maxid);
+					cache_reel(reelid + 1, maxid, morebutton);
 				} else {
-					jQuery('#simianCacheStatus').html('Caching COMPLETE');
+					jQuery('#simianCacheNotice').remove();
+					if(morebutton){
+						jQuery('#simianCacheStatus').html('<input type="button" name="button" value="Look for more reels" onClick="cache_reel('+(reelid + 1)+', '+(reelid + 50)+', true)">');
+					} else {
+						jQuery('#simianCacheStatus').html('Caching COMPLETE');
+					}
 				}
 			}
 		}
