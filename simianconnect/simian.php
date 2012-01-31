@@ -155,6 +155,12 @@ function simian_ajax_select_reel() {
 		$html .= "<script type=\"text/javascript\">";
 		$html .= "cache_reel_adhoc()";
 		$html .= "</script>";
+	} else {
+		$html .= "<p id=\"simianCacheNotice\">Checking for new reels...</p>";
+		$html .= "<p id=\"simianCacheStatus\">&nbsp;</p>";
+		$html .= "<script type=\"text/javascript\">";
+		$html .= "cache_reel_new()";
+		$html .= "</script>";
 	}
 
 	$html .= "<ul class=\"reel_select\">";
@@ -816,23 +822,24 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 		//thumb width & height
 		$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
 
-		$html .= "<ul class=\"playlist\">\n";
+		$html .= "<dl class=\"playlist\">\n";
 
+		$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
 
 		$firstSelect = true;
 		foreach($playlist as $mediaitem){
 
-			$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">\n";
-						
+			$html .= "<dl class=\"simian_media_".$mediaitem->media_id."\">\n";
+
 			if($final_options['thumb_titles'] != false){
 				if($firstSelect){
 
-					$html .= "<div class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</div>";
+					$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
 					$firstSelect = false;
 
 				} else {
 
-					$html .= "<div class=\"thumb_title\">".$mediaitem->media_title."</div>";
+					$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
 
 				}
 			}
@@ -854,7 +861,7 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
 		}
 
-		$html .= "</ul>\n";
+		$html .= "</dd>\n";
 
 		wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
 
