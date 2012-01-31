@@ -543,8 +543,7 @@ function simian_call_requires(){
 	}
 
 	wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
-
-	wp_localize_script('jquery','autoplay_playlist',(int) get_option('simian_default_autoplay'));
+wp_localize_script('simianjs','autoplay_playlist',get_option('simian_default_autoplay',0));
 
 }
 
