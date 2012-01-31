@@ -822,24 +822,24 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 		//thumb width & height
 		$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
 
-		$html .= "<dl class=\"playlist\">\n";
+		$html .= "<ul class=\"playlist\">\n";
 
-		$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
+		//$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
 
 		$firstSelect = true;
 		foreach($playlist as $mediaitem){
 
-			$html .= "<dl class=\"simian_media_".$mediaitem->media_id."\">\n";
+			$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">\n";
 
 			if($final_options['thumb_titles'] != false){
 				if($firstSelect){
 
-					$html .= "<dt class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</dt>";
+					$html .= "<div class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</div>";
 					$firstSelect = false;
 
 				} else {
 
-					$html .= "<dt class=\"thumb_title\">".$mediaitem->media_title."</dt>";
+					$html .= "<div class=\"thumb_title\">".$mediaitem->media_title."</div>";
 
 				}
 			}
@@ -861,7 +861,7 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
 		}
 
-		$html .= "</dd>\n";
+		$html .= "</ul>\n";
 
 		wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
 

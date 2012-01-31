@@ -17,7 +17,7 @@ var $j = jQuery.noConflict();
 $j(document).ready(
 		function() {
 
-			$j('dl.playlist').on(
+			$j('ul.playlist').on(
 					'click',
 					'div.thumb',
 					function(event) {
@@ -26,7 +26,7 @@ $j(document).ready(
 
 						var $thumb = $j(this).parent();
 
-						$j('dl.playlist .selected.hoverOver').removeClass(
+						$j('ul.playlist .selected.hoverOver').removeClass(
 								'selected').removeClass('hoverOver');
 						$j(this).siblings('.thumb_title').addClass('selected')
 								.addClass('hoverOver');
@@ -53,11 +53,11 @@ $j(document).ready(
 						return false;
 					});
 
-			$j('dl.playlist').on('mouseenter', 'div.thumb', function() {
+			$j('ul.playlist').on('mouseenter', 'div.thumb', function() {
 				$j(this).siblings('.thumb_title').addClass('hoverOver');
 			});
 
-			$j('dl.playlist').on('mouseleave', 'div.thumb', function() {
+			$j('ul.playlist').on('mouseleave', 'div.thumb', function() {
 				if (!$j(this).siblings('dt').hasClass('selected')) {
 					$j(this).siblings('.thumb_title').removeClass('hoverOver');
 				}
