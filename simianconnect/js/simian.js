@@ -19,7 +19,7 @@ $j(document).ready(
 
 			$j('dl.playlist').on(
 					'click',
-					'dd',
+					'div.thumb',
 					function(event) {
 
 						event.preventDefault();
@@ -53,11 +53,11 @@ $j(document).ready(
 						return false;
 					});
 
-			$j('dl.playlist').on('mouseenter', 'dd.thumb', function() {
+			$j('dl.playlist').on('mouseenter', 'div.thumb', function() {
 				$j(this).siblings('.thumb_title').addClass('hoverOver');
 			});
 
-			$j('dl.playlist').on('mouseleave', 'dd.thumb', function() {
+			$j('dl.playlist').on('mouseleave', 'div.thumb', function() {
 				if (!$j(this).siblings('dt').hasClass('selected')) {
 					$j(this).siblings('.thumb_title').removeClass('hoverOver');
 				}
@@ -117,10 +117,10 @@ function simian_next_playlist(event, origin) {
 		var nextItem = origin.parent('.current_video').siblings('.playlist')
 				.find('.selected').parent('dl').next();
 		if (nextItem.length > 0) {
-			nextItem.children('dd').click();
+			nextItem.children('div').click();
 		} else {
 			origin.parent('.current_video').siblings('.playlist').find(
-					'dd.thumb').first().click();
+					'div.thumb').first().click();
 		}
 	}
 }
