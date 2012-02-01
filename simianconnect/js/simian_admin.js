@@ -94,7 +94,7 @@ function cache_reel(reelid, maxid, morebutton) {
 							+ response.details.reel_name + '</p></li>';
 					jQuery('.reel_select').prepend(newReel);
 				}
-				if (reelid + 1 <= maxid) {
+				if (reelid + 1 <= maxid && jQuery('#simianCacheNotice').length > 0) {
 					cache_reel(reelid + 1, maxid, morebutton);
 				} else {
 					jQuery('#simianCacheNotice').remove();
