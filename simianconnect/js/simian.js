@@ -14,10 +14,11 @@ if (typeof (QTP) != "undefined" && typeof (QTP.Poster) != "undefined") {
 // reel movie loading
 var $j = jQuery.noConflict();
 
+/*
 $j(document).ready(
 		function() {
 
-			$j('ul.playlist').on(
+			$j('#playlist').on(
 					'click',
 					'div',
 					function(event) {
@@ -26,7 +27,7 @@ $j(document).ready(
 
 						var $thumb = $j(this).parent();
 
-						$j('ul.playlist .selected.hoverOver').removeClass(
+						$j('#playlist .selected.hoverOver').removeClass(
 								'selected').removeClass('hoverOver');
 						$j(this).siblings('.thumb_title').addClass('selected')
 								.addClass('hoverOver');
@@ -56,11 +57,11 @@ $j(document).ready(
 						return false;
 					});
 
-			$j('ul.playlist').on('mouseenter', 'div.thumb', function() {
+			$j('#playlist').on('mouseenter', 'div.thumb', function() {
 				$j(this).siblings('.thumb_title').addClass('hoverOver');
 			});
 
-			$j('ul.playlist').on('mouseleave', 'div.thumb', function() {
+			$j('#playlist').on('mouseleave', 'div.thumb', function() {
 				if (!$j(this).siblings('dt').hasClass('selected')) {
 					$j(this).siblings('.thumb_title').removeClass('hoverOver');
 				}
@@ -68,6 +69,7 @@ $j(document).ready(
 			$j('.current_video_player').on('qt_ended', simian_next_playlist);
 
 		});
+*/
 
 function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 
@@ -117,12 +119,12 @@ function simian_next_playlist(event, origin) {
 		if (!origin) {
 			origin = $j(this);
 		}
-		var nextItem = origin.parent('.current_video').siblings('.playlist')
+		var nextItem = origin.parent('.current_video').siblings('#playlist')
 				.find('.selected').parent('dl').next();
 		if (nextItem.length > 0) {
 			nextItem.children('div').click();
 		} else {
-			origin.parent('.current_video').siblings('.playlist').find(
+			origin.parent('.current_video').siblings('#playlist').find(
 					'div.thumb').first().click();
 		}
 	}

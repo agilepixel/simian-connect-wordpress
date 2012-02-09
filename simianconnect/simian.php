@@ -658,7 +658,7 @@ function simian_load_reel($reel_id, $type="web", $atts){
 
 		$dom_id = "simreel_" . $reel_id;
 
-		$html .= "<div id=\"" . $dom_id . "\" class=\"reel\">";
+		$html .= "<div class=\"" . $dom_id . "\" id=\"reel\">";
 
 		if($final_options['reel_title'] != false){
 			$html .= "<h2 class=\"reel_title\">" . $reel->reel_title . "</h2>";
@@ -675,7 +675,7 @@ function simian_load_reel($reel_id, $type="web", $atts){
 
 		}
 
-		$html .= "<div class='clear_both'></div>\n";
+		$html .= "<div class='cf'></div>\n";
 		$html .= "</div>\n";
 
 		simian_theme($atts);
@@ -683,7 +683,7 @@ function simian_load_reel($reel_id, $type="web", $atts){
 			
 	} else {
 
-		$html .= "No Reel Found (Bad Reel ID?)";
+		$html .= "No Reel Found (Please check your reel ID is valid)";
 
 	}
 
@@ -752,15 +752,15 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
 	$html = "";
 
 	// naughty bit of inline styles
-	$html .= "<dl class=\"current_video\" style=\"width:".$dim['width']."px;\">";
+	$html .= "<div class=\"current_video\" style=\"width:".$dim['width']."px;\">";
 
 	if($final_options['video_title'] != false){
 
-		$html .= "<dt class=\"current_video_title\">".$video->media_title."</dt>";
+		$html .= "<h3 class=\"current_video_title\">".$video->media_title."</h3>";
 
 	}
 
-	$html .= "<dd class=\"current_video_player\">";
+	$html .= "<div class=\"current_video_player\">";
 
 
 	//poster
@@ -798,9 +798,9 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
 
 	}
 
-	$html .= "</dd>\n";
+	$html .= "</div>\n";
 
-	$html .= "</dl>\n";
+	$html .= "</div>\n";
 
 	return $html;
 }
@@ -821,24 +821,23 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 		//thumb width & height
 		$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
 
-		$html .= "<ul class=\"playlist\">\n";
+		$html .= "<ul id=\"playlist\">\n";
 
 		//$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
 
 		$firstSelect = true;
 		foreach($playlist as $mediaitem){
 
-			$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">\n";
+			
 
 			if($final_options['thumb_titles'] != false){
 				if($firstSelect){
-
-					$html .= "<div class=\"thumb_title selected hoverOver\">".$mediaitem->media_title."</div>";
+				$html .= "<li class=\"simian_media_".$mediaitem->media_id." selected hoverOver\">\n";
+					
 					$firstSelect = false;
 
 				} else {
-
-					$html .= "<div class=\"thumb_title\">".$mediaitem->media_title."</div>";
+				$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">\n";
 
 				}
 			}
@@ -848,7 +847,7 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
 			$size_array['simian_media_'.$mediaitem->media_id] = $video_dim;
 
-			$html .= "<div class=\"thumb\">";
+			$html .= "<div class=\"simian_thumb\">";
 
 			$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
 
@@ -856,6 +855,10 @@ function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
 
 			$html .= "</a>";
 			$html .= "</div>\n";
+			$html .= "<div class=\"simian_content\">\n";
+			$html .= "<h3 class=\"thumb_title\">".$mediaitem->media_title."</h3>";
+			$html .= "</div>\n";
+			$html .= "<div class='cf'></div>\n";
 			$html .= "</li>\n";
 
 		}
