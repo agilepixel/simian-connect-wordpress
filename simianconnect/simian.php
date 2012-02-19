@@ -10,7 +10,7 @@
  */
 
 /*
- Copyright (c) 2011 The Code Pharmacy
+ Copyright (c) 2012 The Code Pharmacy
  All Rights Reserved.
  It is unlawful to reproduce, copy or otherwise reuse this software
  without express written permission of the author
@@ -76,43 +76,6 @@ function simian_config() {
 	} else {
 		$html .= "Success!</p>";
 	}
-
-	/*
-
-	//testing into getting a quicker media list
-	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com";
-
-	$simian_post = array();
-	$simian_post['auth_token'] = get_option('simian_client_api_key');
-	$simian_post['section'] = "media";
-	$simian_post['start_record'] = "0";
-	$simian_post['limit'] = "10";
-
-	$ch = curl_init($simian_url . "/v2/api/main/select_all");
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $simian_post);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-	curl_setopt($ch, CURLOPT_HEADER, 0);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$response = curl_exec($ch);
-
-	if(!($reel = simplexml_load_string($response))){
-
-	$html .= "API XML parse error";
-
-
-	} else {
-
-	foreach($reel as $media){
-
-	$html .= "<p>" . $media->title . "</p>";
-
-	}
-
-	$html .= "<code>" . htmlentities($response). "</code>";
-
-	}
-	*/
 
 	echo $html;
 
@@ -217,7 +180,7 @@ function simian_get_reel($reel_id){
 
 		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES ";
 		foreach($return->media as $mediaitem){
-				
+
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
 
 			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\'),',
@@ -320,6 +283,9 @@ function simian_client_config(){
 		$changes = admin_update_text("simianAPI","simian_client_api_key");
 		$changes = admin_update_text("simianTime","simian_cache_time");
 
+		//Skin Options
+		admin_update_text("simianTheme","simian_theme");
+
 		//Reel Defaults
 		admin_update_checkbox("showTitle","simian_default_show_title");
 		admin_update_checkbox("showPlaylist","simian_default_show_playlist");
@@ -358,6 +324,24 @@ function simian_client_config(){
 
 	$html .= admin_setting_input("simianTime","Cache time",get_option('simian_cache_time'),
 		"Time (in minutes) that reel/media data is cached in the Wordpress DB for quick retrival.");
+
+	$html .= "</dl>";
+
+	$html .= "<h3>Reel Skin</h3>";
+
+	$html .= "<dl class=\"settings-group\">";
+
+	$skinArray = array(
+	"Slideshow"=>"slideshow",
+	"None"=>"none"
+	);
+
+	if(file_exists(get_template_directory() . '/simian/custom.css')){
+		$skinArray["Theme Directory Style"] = "user_custom";
+	}
+
+	$html .= admin_setting_input("simianTheme","Choose a theme",get_option('simian_theme'),
+		"Choose from one of our built in Reel Styles or add <strong>/simian/custom.css</strong> to your theme directory for a your own custom look","select",$skinArray);
 
 	$html .= "</dl>";
 
@@ -472,7 +456,7 @@ function admin_setting_input_td($id, $label, $value, $desc,$type="text"){
 
 }
 
-function admin_setting_input($id, $label, $value, $desc,$type="text"){
+function admin_setting_input($id, $label, $value, $desc, $type="text", $options=null){
 
 	$html = "";
 
@@ -481,6 +465,19 @@ function admin_setting_input($id, $label, $value, $desc,$type="text"){
 	switch($type){
 		case "checkbox":
 			$html .= "<dd><input name=\"" . $id . "\" type=\"checkbox\" id=\"" . $id . "\" value=\"1\" ". $value . "class=\"regular-text\" /></dd>";
+			break;
+		case "select":
+			$html .= "<dd><select name=\"" . $id . "\" id=\"" . $id . "\">";
+			if(is_array($options)){
+				foreach($options as $title=>$val){
+					if($val == $value){
+						$html .= "<option value=\"" . $val . "\" selected=\"selected\">".$title."</option>";
+					} else {
+						$html .= "<option value=\"" . $val . "\">".$title."</option>";
+					}
+				}
+			}
+			$html .= "</select></dd>";
 			break;
 		case "text":
 		default:
@@ -543,7 +540,11 @@ function simian_call_requires(){
 	}
 
 	wp_enqueue_script('simianjs',plugin_dir_url(__FILE__).'js/simian.js','jquery');
-wp_localize_script('simianjs','autoplay_playlist',get_option('simian_default_autoplay',0));
+	wp_localize_script('simianjs','autoplay_playlist',get_option('simian_default_autoplay',0));
+
+	//custom css styles
+	simian_theme();
+
 
 }
 
@@ -623,11 +624,14 @@ function wp_get_playlist($reel_id){
 function simian_load_reel($reel_id, $type="web", $atts){
 
 	/* reel options */
-	$final_options = array();
-	$final_options['reel_title'] = simian_tag_boolean($atts,"title","simian_default_show_title", array("show","hide"));
-	$final_options['show_playlist'] = simian_tag_boolean($atts,"playlist","simian_default_show_playlist", array("show","hide"));
-	$final_options['autoplay'] = simian_tag_boolean($atts,"autoplay","simian_default_autoplay");
-	$final_options['use_jw'] = simian_tag_boolean($atts,"use_jw","simian_use_jw");
+	$simian_options = array();
+	$simian_options['reel_title'] = simian_tag_boolean($atts,"title","simian_default_show_title", array("show","hide"));
+	$simian_options['show_playlist'] = simian_tag_boolean($atts,"playlist","simian_default_show_playlist", array("show","hide"));
+	$simian_options['autoplay'] = simian_tag_boolean($atts,"autoplay","simian_default_autoplay");
+	$simian_options['use_jw'] = simian_tag_boolean($atts,"use_jw","simian_use_jw");
+	$simian_options['video_title'] = simian_tag_boolean($atts,"video_title","simian_default_show_current_title", array("show","hide"));
+	$simian_options['poster'] = simian_tag_boolean($atts,"poster","simian_default_showposters", array("show","hide"));
+	$simian_options['thumb_titles'] = simian_tag_boolean($atts,"thumb_titles","simian_default_playlist_titles", array("show","hide"));
 
 	$simian_url = "http://" . get_option('simian_client_company_id') . ".gosimian.com" . "/assets/";
 
@@ -657,28 +661,25 @@ function simian_load_reel($reel_id, $type="web", $atts){
 	if($reel->count > 0){
 
 		$dom_id = "simreel_" . $reel_id;
-
-		$html .= "<div class=\"" . $dom_id . "\" id=\"reel\">";
-
-		if($final_options['reel_title'] != false){
-			$html .= "<h2 class=\"reel_title\">" . $reel->reel_title . "</h2>";
-		}
-
 		$playlist = wp_get_playlist($reel_id);
+		$chosenTheme = get_option('simian_theme');
 
-		// current video player
-		$html .= simian_video_html($simian_url,$dom_id,$playlist[0],$atts);
-
-		if($final_options['show_playlist'] != false){
-
-			$html .= simian_show_playlist($simian_url,$dom_id,$playlist,$atts);
-
+		//look for usable template file
+		if(file_exists(get_template_directory() . '/simian/custom.php')){
+			$templateFile = get_template_directory() . '/simian/custom.php';
+		} elseif (file_exists(plugin_dir_path(__FILE__).'themes/'.$chosenTheme.'.php')){
+			$templateFile = plugin_dir_path(__FILE__).'themes/'.$chosenTheme.'.php';
+		} else {
+			$templateFile = plugin_dir_path(__FILE__).'themes/default.php';
 		}
 
-		$html .= "<div class='cf'></div>\n";
-		$html .= "</div>\n";
+		$frontVideo = $playlist[0];
 
-		simian_theme($atts);
+		//store template output
+		ob_start();
+		include($templateFile);
+		$html .= ob_get_contents ();
+		ob_end_clean ();
 			
 			
 	} else {
@@ -734,50 +735,12 @@ function parse_dimensions($default, $tag, $original, $atts){
 
 }
 
-
-function simian_video_html($simian_url,$dom_id,$video,$atts){
-
-	/* video options */
-	$final_options = array();
-	$final_options['video_title'] = simian_tag_boolean($atts,"video_title","simian_default_show_current_title", array("show","hide"));
-	$final_options['poster'] = simian_tag_boolean($atts,"poster","simian_default_showposters", array("show","hide"));
-
-	//width & height
-	$dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($video->media_width, $video->media_height), $atts);
-
-	$dom_id = $dom_id . "_mov";
-
-	$movie_url =  $simian_url . $video->media_url;
-
+function simian_inline_javascript($dom_id,$movie_url,$dim){
 	$html = "";
+	$html .= "<script type=\"text/javascript\">";
 
-	// naughty bit of inline styles
-	$html .= "<div class=\"current_video\" style=\"width:".$dim['width']."px;\">";
-
-	if($final_options['video_title'] != false){
-
-		$html .= "<h3 class=\"current_video_title\">".$video->media_title."</h3>";
-
-	}
-
-	$html .= "<div class=\"current_video_player\">";
-
-
-	//poster
-	if($final_options['poster'] != false){
-
-		//show a poster frame
-		$html .= "<a href=\"".$movie_url."\" rel=\"qtposter\" jscontroller=\"false\"><img src='".$simian_url . $video->media_thumb."' width=\"".$dim['width']."\" height=\"".$dim['height']."\" /></a>";
-
-	} else {
-
-		// just go ahead and embed the movie!
-		$html .= "<div id=\"".$dom_id."\">".$dom_id."</div>";
-
-		$html .= "<script type=\"text/javascript\">";
-
-		if(get_option('simian_use_jw')==1){
-			$html .= "jwplayer(\"".$dom_id."\").setup(
+	if(get_option('simian_use_jw')==1){
+		$html .= "jwplayer(\"".$dom_id."\").setup(
 			{
 			autostart: false,
 			file: \"".$movie_url."\",
@@ -790,95 +753,29 @@ function simian_video_html($simian_url,$dom_id,$video,$atts){
    				}
    			}
 			});";
-		} else {
-			$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$dim['width']."','".$dim['height']."', 'false', 'false');";
-		}
-
-		$html .= "</script>";
-
+	} else {
+		$html .= "qtEmbed('".$dom_id."','".$movie_url."','".$dim['width']."','".$dim['height']."', 'false', 'false');";
 	}
 
-	$html .= "</div>\n";
-
-	$html .= "</div>\n";
-
+	$html .= "</script>";
 	return $html;
 }
 
-function simian_show_playlist($simian_url,$dom_id,$playlist,$atts){
+function simian_theme(){
 
-	$html = "";
+	$chosenTheme = get_option('simian_theme');
 
-	if(count($playlist) >= 2) {
-
-		wp_enqueue_script('simian_size',plugin_dir_url(__FILE__).'js/simian_size.js');
-		$size_array = array();
-
-		/* playlist options */
-		$final_options = array();
-		$final_options['thumb_titles'] = simian_tag_boolean($atts,"thumb_titles","simian_default_playlist_titles", array("show","hide"));
-
-		//thumb width & height
-		$thumb_dim = parse_dimensions(array(get_option('simian_default_thumb_width'),get_option('simian_default_thumb_height')),array("thumb_width", "thumb_height"),array(129,96), $atts);
-
-		$html .= "<ul id=\"playlist\">\n";
-
-		//$html .= "<dt style='display:none;'>".$dom_id."</dt><dd>\n";
-
-		$firstSelect = true;
-		foreach($playlist as $mediaitem){
-
-			
-
-			if($final_options['thumb_titles'] != false){
-				if($firstSelect){
-				$html .= "<li class=\"simian_media_".$mediaitem->media_id." selected hoverOver\">\n";
-					
-					$firstSelect = false;
-
-				} else {
-				$html .= "<li class=\"simian_media_".$mediaitem->media_id."\">\n";
-
-				}
-			}
-
-			//video width & height (when clicked)
-			$video_dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($mediaitem->media_width, $mediaitem->media_height), $atts);
-
-			$size_array['simian_media_'.$mediaitem->media_id] = $video_dim;
-
-			$html .= "<div class=\"simian_thumb\">";
-
-			$html .= "<a href=\"". $simian_url . $mediaitem->media_url."\" rel=\"".$dom_id."\">";
-
-			$html .= "<img title=\"".$mediaitem->media_title."\" src=\"".$simian_url. $mediaitem->media_thumb."\" width=\"".$thumb_dim['width']."\" height=\"".$thumb_dim['height']."\" />";
-
-			$html .= "</a>";
-			$html .= "</div>\n";
-			$html .= "<div class=\"simian_content\">\n";
-			$html .= "<h3 class=\"thumb_title\">".$mediaitem->media_title."</h3>";
-			$html .= "</div>\n";
-			$html .= "<div class='cf'></div>\n";
-			$html .= "</li>\n";
-
-		}
-
-		$html .= "</ul>\n";
-
-		wp_localize_script('simian_size', $dom_id . '_sizes', $size_array);
-
-		//$html .= "</dl>\n";
-
+	if($chosenTheme=="user_custom"){
+		wp_enqueue_style('simian_theme',get_template_directory_uri() . '/simian/custom.css');
+		$jspath = get_template_directory() . '/simian/custom.js';
+	} else if($chosenTheme!="none"){
+		wp_enqueue_style('simian_theme',plugin_dir_url(__FILE__).'css/'.$chosenTheme.'.css');
+		$jspath = plugin_dir_path(__FILE__).'js/'.$chosenTheme.'.js';
 	}
-	return $html;
 
-}
-
-function simian_theme($atts){
-
-
-	wp_enqueue_style('simian_theme_reset',plugin_dir_url(__FILE__).'css/reset.css');
-	wp_enqueue_style('simian_theme',plugin_dir_url(__FILE__).'css/slideshow.css');
+	if(isset($jspath)&&file_exists($jspath)){
+		wp_enqueue_script('simian_style_js',$jspath);
+	}
 
 }
 
