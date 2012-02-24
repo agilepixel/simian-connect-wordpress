@@ -84,7 +84,7 @@ function cache_reel(reelid, maxid, morebutton) {
 		dataType : "json",
 		success : function(response) {
 			if (response.status) {
-				if (response.status == "OK"
+				if (response.status == "OK" && response.details.reel_id != 0
 						&& jQuery('.reel_select').length > 0) {
 					var newReel = '<li><a href="#" id="reel_id_'
 							+ response.details.reel_id + '"><img src="'
