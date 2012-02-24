@@ -249,7 +249,7 @@ function simian_settings_init() {
 	add_option('simian_default_autoplay','0');
 	add_option('simian_use_jw','0');
 
-	add_option('simian_theme','slideshow');
+	add_option('simian_theme','theme1');
 
 	//Current Video Defaults
 	add_option('simian_default_show_current_title','1');
@@ -331,12 +331,14 @@ function simian_client_config(){
 
 	$html .= "<dl class=\"settings-group\">";
 
+	//This is the list of built in themes that come with the plugin
 	$skinArray = array(
-	"Slideshow"=>"slideshow",
-	"None"=>"none"
+	"Theme #1"=>"theme1",
+	"Theme #2"=>"theme2",
+	"Theme #3"=>"theme3"
 	);
 
-	if(file_exists(get_template_directory() . '/simian/custom.css')){
+	if(file_exists(get_template_directory() . '/simian/custom.css')||file_exists(get_template_directory() . '/simian/custom.php')||file_exists(get_template_directory() . '/simian/custom.js')){
 		$skinArray["Theme Directory Style"] = "user_custom";
 	}
 
@@ -664,8 +666,8 @@ function simian_load_reel($reel_id, $type="web", $atts){
 		$playlist = wp_get_playlist($reel_id);
 		$chosenTheme = get_option('simian_theme');
 
-		//look for usable template file
-		if(file_exists(get_template_directory() . '/simian/custom.php')){
+		//look for usable template file - first
+		if($chosenTheme == "user_custom" && file_exists(get_template_directory() . '/simian/custom.php')){
 			$templateFile = get_template_directory() . '/simian/custom.php';
 		} elseif (file_exists(plugin_dir_path(__FILE__).'themes/'.$chosenTheme.'.php')){
 			$templateFile = plugin_dir_path(__FILE__).'themes/'.$chosenTheme.'.php';
@@ -678,7 +680,7 @@ function simian_load_reel($reel_id, $type="web", $atts){
 		//store template output
 		ob_start();
 		include($templateFile);
-		$html .= ob_get_contents ();
+		$html .= ob_get_contents();
 		ob_end_clean ();
 			
 			
@@ -766,15 +768,23 @@ function simian_theme(){
 	$chosenTheme = get_option('simian_theme');
 
 	if($chosenTheme=="user_custom"){
-		wp_enqueue_style('simian_theme',get_template_directory_uri() . '/simian/custom.css');
+		$csspath = get_template_directory() . '/simian/custom.css';
 		$jspath = get_template_directory() . '/simian/custom.js';
-	} else if($chosenTheme!="none"){
-		wp_enqueue_style('simian_theme',plugin_dir_url(__FILE__).'css/'.$chosenTheme.'.css');
+		$jsurl = get_template_directory_uri() . '/simian/custom.js';
+		$cssurl = get_template_directory_uri() . '/simian/custom.css';
+	} else {
+		$csspath = plugin_dir_path(__FILE__).'css/'.$chosenTheme.'.css';
 		$jspath = plugin_dir_path(__FILE__).'js/'.$chosenTheme.'.js';
+		$cssurl = plugin_dir_url(__FILE__).'css/'.$chosenTheme.'.css';
+		$jsurl = plugin_dir_url(__FILE__).'js/'.$chosenTheme.'.js';
 	}
 
-	if(isset($jspath)&&file_exists($jspath)){
-		wp_enqueue_script('simian_style_js',$jspath);
+	if(isset($jsurl)&&file_exists($jspath)){
+		wp_enqueue_script('simian_style_js',$jsurl);
+	}
+
+	if(isset($cssurl)&&file_exists($csspath)){
+		wp_enqueue_style('simian_theme',$cssurl);
 	}
 
 }

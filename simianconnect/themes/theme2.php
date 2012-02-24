@@ -1,10 +1,9 @@
 <?php
 /**
- Base template file for Simian plugin
- Used only when no usable theme files found
+ Theme 2
  **/
 ?>
-<!-- BASE THEME IN USE -->
+<!-- THEME 2 IN USE -->
 <div class="<?php echo $dom_id; ?>" id="reel">
 
 <?php if($simian_options['reel_title'] != false): ?>
