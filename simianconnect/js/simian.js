@@ -14,9 +14,7 @@ if (typeof (QTP) != "undefined" && typeof (QTP.Poster) != "undefined") {
 // reel movie loading
 var $j = jQuery.noConflict();
 
-/*
-$j(document).ready(
-		function() {
+$j(document).ready(function(){
 
 			$j('#playlist').on(
 					'click',
@@ -27,32 +25,28 @@ $j(document).ready(
 
 						var $thumb = $j(this).parent();
 
-						$j('#playlist .selected.hoverOver').removeClass(
-								'selected').removeClass('hoverOver');
-						$j(this).siblings('.thumb_title').addClass('selected')
-								.addClass('hoverOver');
+						$j('#playlist .selected.hoverOver').removeClass('selected').removeClass('hoverOver');
+						
+						console.log($thumb.find('.simian_content'));
+						
+						$thumb.find('.simian_content').addClass('selected').addClass('hoverOver');
+								
 						// get the main video player id
 						var $reel_id = $thumb.find('a').attr('rel');
-						var $p = $j("#" + $reel_id);
+						var $p = $j("." + $reel_id );
 
 						var $m = $j("<div />").attr('id', $reel_id + "_mov");
 						$p.find('.current_video_player').empty().append($m);
 
 						// grab the dimensions from the dynamic wp localization
-						var $dim = window[$reel_id + '_sizes'][$thumb
-								.attr('class')];
+
+						var $dim = window[$reel_id + '_sizes'][$thumb.attr('class')];
 
 						var $img = $thumb.find('img');
-
-						console.log($thumb);
-						console.log($thumb.find('a'));
-						console.log($thumb.find('a').attr('href'));
-						qtEmbed($reel_id + "_mov", $thumb.find('a')
-								.attr('href'), $dim['width'], $dim['height'],
-								"false", $img.attr('src'));
-
-						$p.find('.current_video_title')
-								.html($img.attr('title'));
+						
+						qtEmbed($reel_id + "_mov", $thumb.find('a').attr('href'), $dim['width'], $dim['height'],"false", $img.attr('src'));
+						
+						$p.find('.current_video_title').html($img.attr('title'));
 
 						return false;
 					});
@@ -69,10 +63,11 @@ $j(document).ready(
 			$j('.current_video_player').on('qt_ended', simian_next_playlist);
 
 		});
-*/
 
 function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
-
+	
+	var $main = $j("#"+$dom_id);
+	
 	if (typeof (QTP) != "undefined" && typeof (QTP.Poster) != "undefined"
 			&& $poster != 'false') {
 
@@ -81,7 +76,9 @@ function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 				+ "\" rel=\"qtposter\" jscontroller=\"false\"><img src=\""
 				+ $poster + "\" width=\"" + $width + "\" height=\"" + $height
 				+ "\" /></a>";
-		$($dom_id).replace($new);
+				
+		$main.html($new);
+		
 		QTP.Poster.instantiatePosters();
 		if ($autostart === "true") {
 			$parent.children('.QTP').click();
@@ -89,12 +86,9 @@ function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 
 	} else if (typeof (QT) != "undefined") {
 
-		var $new = QT
-				.GenerateOBJECTText_XHTML($src, $width, $height, '', 'scale',
-						'tofit', 'autostart', $autostart, 'EnableJavaScript',
-						'True', 'postdomevents', 'True', 'emb#name', $dom_id
-								+ '_embed');
-		$($dom_id).replace($new);
+		var $new = QT.GenerateOBJECTText_XHTML($src, $width, $height, '', 'scale','tofit', 'autostart', $autostart, 'EnableJavaScript','True', 'postdomevents', 'True', 'emb#name', $dom_id + '_embed');
+		
+		$main.html($new);
 
 	} else {
 		jwplayer($dom_id).setup(
@@ -112,6 +106,7 @@ function qtEmbed($dom_id, $src, $width, $height, $autostart, $poster) {
 					}
 				});
 	}
+	
 }
 
 function simian_next_playlist(event, origin) {
