@@ -1,1 +1,1 @@
-console.log("Custom JS for Theme 3	");
+console.log("Custom JS for Theme 3");

@@ -3,7 +3,7 @@
  Plugin Name: Simian Connect
  Plugin URI: http://thecodepharmacy.co.uk/simian-connect/
  Description: Access all your Simian&trade; media and easily add them to your posts. Uses the Simian&trade; XML API.
- Version: 0.4
+ Version: 0.6
  Author: The Code Pharmacy
  Author URI: http://thecodepharmacy.co.uk/
  License: Proprietary
@@ -18,7 +18,7 @@
 
 require_once('library/config/config.php');
 
-$simian_connect_version = "0.4";
+$simian_connect_version = "0.6";
 add_action('plugins_loaded', 'simian_update_db_check');
 
 add_action('admin_init','simian_admin_init');
@@ -89,12 +89,16 @@ function simian_cache_page(){
 	$html .= '<h2>Simian&trade; Connect Reel Cache</h2>';
 	$html .= '</div>';
 
-	$html .= '<form id="simianCacheForm" method="post" action="#">';
-	$html .= '<input name="simianReelMax" type="text" id="simianReelMax" value="250" maxlength="3" class="regular-text">';
-	$html .= '<span class="description">Maximum Reel ID to search for.</span>';
-	$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
-	$html .= '</form>';
-	$html .= '<p id="simianCacheStatus">&nbsp</p>';
+	if(!get_option('simian_client_company_id')||!get_option('simian_client_api_key')){
+		$html .= "<p id=\"simianCacheNotice\">Simian Connect must be <a href=\"".get_admin_url()."admin.php?page=simian_connect\">configured</a> first!</p>";
+	} else {
+		$html .= '<form id="simianCacheForm" method="post" action="#">';
+		$html .= '<input name="simianReelMax" type="text" id="simianReelMax" value="250" maxlength="3" class="regular-text">';
+		$html .= '<span class="description">Maximum Reel ID to search for.</span>';
+		$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
+		$html .= '</form>';
+		$html .= '<p id="simianCacheStatus">&nbsp</p>';
+	}
 
 	echo $html;
 
@@ -107,6 +111,12 @@ function simian_ajax_select_reel() {
 	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com" . "/assets/";
 
 	$html = "";
+
+	if(!get_option('simian_client_company_id')||!get_option('simian_client_api_key')){
+		$html .= "<p id=\"simianCacheNotice\">Simian Connect must be <a href=\"".get_admin_url()."admin.php?page=simian_connect\">configured</a> first!</p>";
+		echo $html;
+		die();
+	}
 
 	$html .= "<p>Click on a reel from the selection below to insert it into your post: <input id=\"simian_select_filter\" type=\"text\" name=\"reel_filter\" value=\"Filter Reels\" /></p>";
 
@@ -161,6 +171,10 @@ function simian_get_reel($reel_id){
 
 	} else {
 
+		if(count($return->media) == 0){
+			return array('reel_id'=>0,'reel_name'=>'No Media');
+		}
+
 		$responseArray = array();
 
 		$return->reel->name = str_replace("'", "\\'", $return->reel->name);
@@ -177,7 +191,7 @@ function simian_get_reel($reel_id){
 
 		$responseArray['reel_id'] = (int) $return->reel->id;
 		$responseArray['reel_name'] = (string) $return->reel->name;
-
+		
 		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES ";
 		foreach($return->media as $mediaitem){
 
@@ -201,6 +215,7 @@ function simian_get_reel($reel_id){
 		}
 		$compoundQuery = substr($compoundQuery, 0, -1);
 		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height)";
+
 		$wpdb->query($compoundQuery);
 		return $responseArray;
 	}
@@ -363,7 +378,7 @@ function simian_client_config(){
 		"Play each video in the playlist on page load automatically in sequence.","checkbox");
 
 	$html .= admin_setting_input("useJW","Use HTML5/Flash JW Player", checked(1, get_option('simian_use_jw'), false),
-		"Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. If unsure, leave unchecked.</strong></span>",
+		"Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. Check with Simian for encoding details. If unsure, leave unchecked.</strong></span>",
 		"checkbox");
 
 	$html .= "</dl>";
@@ -529,14 +544,18 @@ function simian_call_requires(){
 	if(get_option('simian_use_jw')==1){
 
 		wp_enqueue_script('swfobject');
-		wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
-		wp_localize_script('simianjw','jw_swf',plugin_dir_url(__FILE__).'jwplayer/player.swf');
+		//wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'jwplayer/jwplayer.js','swfobject');
+		//wp_localize_script('simianjw','jw_swf',plugin_dir_url(__FILE__).'jwplayer/player.swf');
+
+		wp_enqueue_script('simianjw',plugin_dir_url(__FILE__).'ovp/ovp.js','swfobject');
+		wp_localize_script('simianjw','jw_swf',plugin_dir_url(__FILE__).'ovp/AkamaiFlashPlayer.swf');
+
 
 	} else {
 
 		wp_enqueue_script('prototype');
-		wp_enqueue_script('simianqtac','http://www.apple.com/library/quicktime/2.0/scripts/ac_quicktime.js','prototype');
-		wp_enqueue_script('simianqt','http://www.apple.com/library/quicktime/2.0/scripts/qtp_poster.js','prototype');
+		wp_enqueue_script('simianqtac',plugin_dir_url(__FILE__).'quicktime/ac_quicktime.js','prototype');
+		wp_enqueue_script('simianqt',plugin_dir_url(__FILE__).'quicktime/qtp_poster.js','prototype');
 		wp_enqueue_style('simianqtcss','http://www.apple.com/library/quicktime/2.0/stylesheets/qtp_poster.css','prototype');
 
 	}
@@ -847,26 +866,26 @@ function simian_db_upgrade(){
 
 	$mediaTableName = $wpdb->prefix . "simian_media";
 
-	$sql1 = "CREATE TABLE `" . $mediaTableName . "` (
-			  `unique_media_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-			  `media_id` mediumint(9) NOT NULL,
-			  `reel_id` mediumint(9) NOT NULL,
-			  `media_title` varchar(55) NOT NULL,
-			  `media_thumb` varchar(120) NOT NULL,
-			  `media_url` varchar(120) NOT NULL,
-			  `media_mobile_url` varchar(120) NOT NULL,
-			  `media_width` mediumint(9) NOT NULL,
-			  `media_height` mediumint(9) NOT NULL,
-			  PRIMARY KEY (`unique_media_id`),
-			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
+	$sql1 = "CREATE TABLE " . $mediaTableName . " (
+			  unique_media_id int(10) unsigned NOT NULL AUTO_INCREMENT,
+			  media_id mediumint(9) NOT NULL,
+			  reel_id mediumint(9) NOT NULL,
+			  media_title varchar(55) NOT NULL,
+			  media_thumb varchar(120) NOT NULL,
+			  media_url varchar(120) NOT NULL,
+			  media_mobile_url varchar(120) NOT NULL,
+			  media_width mediumint(9) NOT NULL,
+			  media_height mediumint(9) NOT NULL,
+			  PRIMARY KEY  (unique_media_id),
+			  UNIQUE KEY media_reel_link (media_id,reel_id)
 			);";
 
-	$sql2 = "CREATE TABLE `" . $reelTableName . "` (
-			  `reel_id` mediumint(9) NOT NULL,
-			  `reel_title` varchar(55) NOT NULL,
-			  `reel_freshness` datetime NOT NULL,
-			  `reel_time` datetime DEFAULT NULL,
-			  PRIMARY KEY (`reel_id`)
+	$sql2 = "CREATE TABLE " . $reelTableName . " (
+			  reel_id mediumint(9) NOT NULL,
+			  reel_title varchar(55) NOT NULL,
+			  reel_freshness datetime NOT NULL,
+			  reel_time datetime DEFAULT NULL,
+			  PRIMARY KEY  (reel_id)
 			);";
 
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
