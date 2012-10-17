@@ -49,3 +49,10 @@ width:auto;
 #simianCacheStatus{
 	clear:both;
 }
+
+#wp-fullscreen-buttons #wp_fs_simianc span.mce_simianc {
+
+	background-image: url('../media/simian-icon-16.png');
+	background-position: 2px 2px;
+
+}

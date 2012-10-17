@@ -55,13 +55,14 @@ function simian_config() {
 	$html .= '<div class="wrap">';
 	$html .= '<h2>Simian&trade; Connect Debug</h2>';
 	$html .= '</div>';
-
+	$count = 0;
 	//function checks
 	$html .= "<p>Checking for SimpleXML... ";
 	if(!function_exists('simplexml_load_file')){
 		$html .= "SimpleXML not available</p>";
 	} else {
 		$html .= "Success!</p>";
+		$count++;
 	}
 	$html .= "<p>Checking for cURL... ";
 	if(!function_exists('curl_init')){
@@ -69,12 +70,20 @@ function simian_config() {
 	}
 	else {
 		$html .= "Success!</p>";
+		$count++;
 	}
 	$html .= "<p>Checking for JSON... ";
 	if(!function_exists('json_encode')){
 		$html .= "JSON not available</p>";
 	} else {
 		$html .= "Success!</p>";
+		$count++;
+	}
+
+	if($count==3){
+		$html .= "<p>Your system has the required PHP functions for this plugin to operate.</p>";
+	} else {
+		$html .= "<p>Your system is missing required PHP functions, contact your administrator to resolve.</p>";
 	}
 
 	echo $html;
@@ -192,12 +201,66 @@ function simian_get_reel($reel_id){
 		$responseArray['reel_id'] = (int) $return->reel->id;
 		$responseArray['reel_name'] = (string) $return->reel->name;
 		
-		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height) VALUES ";
+		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height,credits_director,credits_dop,credits_postp,media_type,media_description,media_tags,media_sort_order,media_status,media_notes) VALUES ";
 		foreach($return->media as $mediaitem){
 
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
 
-			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\'),',
+			if(isset($mediaitem->credits->director)){
+				$director = '\''.$mediaitem->credits->director.'\'';
+			} else {
+				$director = 'NULL';
+			}
+
+			if(isset($mediaitem->credits->director_of_photography)){
+				$dop = '\''.$mediaitem->credits->director_of_photography.'\'';
+			} else {
+				$dop = 'NULL';
+			}
+
+			if(isset($mediaitem->credits->post_production)){
+				$postp = '\''.$mediaitem->credits->post_production.'\'';
+			} else {
+				$postp = 'NULL';
+			}
+
+			if(isset($mediaitem->file_type)){
+				$mtype = '\''.$mediaitem->file_type.'\'';
+			} else {
+				$mtype = 'NULL';
+			}
+
+			if(isset($mediaitem->description)){
+				$mdesc = '\''.$mediaitem->description.'\'';
+			} else {
+				$mdesc = 'NULL';
+			}
+
+			if(isset($mediaitem->tags)){
+				$mtags = '\''.$mediaitem->tags.'\'';
+			} else {
+				$mtags = 'NULL';
+			}
+
+			if(isset($mediaitem->sort_order)){
+				$msort = '\''.$mediaitem->sort_order.'\'';
+			} else {
+				$msort = 'NULL';
+			}
+
+			if(isset($mediaitem->status)){
+				$mstat = '\''.$mediaitem->status.'\'';
+			} else {
+				$mstat = 'NULL';
+			}
+
+			if(isset($mediaitem->notes)){
+				$mnote = '\''.$mediaitem->notes.'\'';
+			} else {
+				$mnote = 'NULL';
+			}
+
+			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',%9$s,%10$s,%11$s,%12$s,%13$s,%14$s,%15$s,%16$s,%17$s),',
 			$mediaitem->id,
 			$return->reel->id,
 			$mediaitem->title,
@@ -205,7 +268,16 @@ function simian_get_reel($reel_id){
 			strip_url($mediaitem->media_file,$simian_url. "/assets/"),
 			strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"),
 			$mediaitem->media_width,
-			$mediaitem->media_height
+			$mediaitem->media_height,
+			$director,
+			$dop,
+			$postp,
+			$mtype,
+			$mdesc,
+			$mtags,
+			$msort,
+			$mstat,
+			$mnote
 			);
 			$compoundQuery .= $insertMedia;
 
@@ -214,7 +286,7 @@ function simian_get_reel($reel_id){
 			}
 		}
 		$compoundQuery = substr($compoundQuery, 0, -1);
-		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height)";
+		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height), credits_director = VALUES(credits_director), credits_dop = VALUES(credits_dop), credits_postp = VALUES(credits_postp), media_type = VALUES(media_type), media_description = VALUES(media_description), media_tags = VALUES(media_tags), media_sort_order = VALUES(media_sort_order), media_status = VALUES(media_status), media_notes = VALUES(media_notes)";
 
 		$wpdb->query($compoundQuery);
 		return $responseArray;
@@ -296,7 +368,7 @@ function simian_client_config(){
 		//API
 		$changes = admin_update_text("simianName","simian_client_company_id");
 		$changes = admin_update_text("simianAPI","simian_client_api_key");
-		$changes = admin_update_text("simianTime","simian_cache_time");
+		$changes = admin_update_text("simianTime","simian_cache_time",array("numeric","notempty"));
 
 		//Skin Options
 		admin_update_text("simianTheme","simian_theme");
@@ -310,14 +382,14 @@ function simian_client_config(){
 		//Current Video Defaults
 		admin_update_checkbox("showNowPlayingTitle","simian_default_show_current_title");
 
-		$changes = admin_update_text("simianDefaultWidth","simian_default_width");
-		$changes = admin_update_text("simianDefaultHeight","simian_default_height");
+		$changes = admin_update_text("simianDefaultWidth","simian_default_width",array("numeric","notempty"));
+		$changes = admin_update_text("simianDefaultHeight","simian_default_height",array("numeric","notempty"));
 		admin_update_checkbox("showPoster","simian_default_showposters");
 
 		//Playlist Defaults
 		admin_update_checkbox("simianDefaultPlaylistTitles","simian_default_playlist_titles");
-		$changes = admin_update_text("simianDefaultThumbnailWidth","simian_default_thumb_width");
-		$changes = admin_update_text("simianDefaultThumbnailHeight","simian_default_thumb_height");
+		$changes = admin_update_text("simianDefaultThumbnailWidth","simian_default_thumb_width",array("numeric","notempty"));
+		$changes = admin_update_text("simianDefaultThumbnailHeight","simian_default_thumb_height",array("numeric","notempty"));
 
 	}
 
@@ -377,9 +449,9 @@ function simian_client_config(){
 	$html .= admin_setting_input("autoPlayPlaylist","Auto-Play Playlist", checked( 1, get_option('simian_default_autoplay'), false ),
 		"Play each video in the playlist on page load automatically in sequence.","checkbox");
 
-	$html .= admin_setting_input("useJW","Use HTML5/Flash JW Player", checked(1, get_option('simian_use_jw'), false),
-		"Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. Check with Simian for encoding details. If unsure, leave unchecked.</strong></span>",
-		"checkbox");
+	//$html .= admin_setting_input("useJW","Use HTML5/Flash JW Player", checked(1, get_option('simian_use_jw'), false),
+	//	"Use JW Player instead of Quicktime to display videos. <strong>Only works with certain encoded files. Check with Simian for encoding details. If unsure, leave unchecked.</strong></span>",
+	//	"checkbox");
 
 	$html .= "</dl>";
 
@@ -429,11 +501,46 @@ function simian_client_config(){
 
 }
 
-function admin_update_text($input,$option){
+function admin_update_text($input,$option,$validation=null){
 
 	if(isset($_POST[$input])){
-		update_option($option, $_POST[$input]);
+
+	$data = strip_tags($_POST[$input]);
+
+	if(!is_array($validation)){
+		$validation = array($validation);
+	}
+	$valid = true;
+	foreach ($validation as $validator) {
+		switch($validator){
+			case "numeric":
+				if (!preg_match('/^[0-9]+$/', $data)) {
+					echo "failed numeric (" . $data . ")";
+					$valid = false;
+				}
+			break;
+			case "alphanumeric":
+				if (!preg_match('/^[A-z0-9]+$/', $data)) {
+					echo "failed alpha (" . $data . ")";
+					$valid = false;
+				}
+			break;
+			case "notempty":
+				if (!preg_match('/^.+$/', $data)) {
+					echo "failed notempty (" . $data . ")";
+					$valid = false;
+				}
+			break;
+		}
+	}
+
+	if(!$valid){
+		return false;
+	} else {
+		update_option($option, $data);
 		return true;
+	}
+
 	}
 
 	return false;
@@ -636,7 +743,7 @@ function wp_get_playlist($reel_id){
 
 	global $wpdb;
 
-	$playlist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_thumb, media_width, media_height  FROM %1s WHERE reel_id = %2d",$wpdb->prefix . "simian_media",$reel_id));
+	$playlist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_thumb, media_width, media_height FROM %1s WHERE reel_id = %2d AND media_status = 'active' ORDER BY media_sort_order",$wpdb->prefix . "simian_media",$reel_id));
 
 	return $playlist;
 
@@ -694,7 +801,11 @@ function simian_load_reel($reel_id, $type="web", $atts){
 			$templateFile = plugin_dir_path(__FILE__).'themes/default.php';
 		}
 
-		$frontVideo = $playlist[0];
+		if(count($playlist)>1){
+			$frontVideo = $playlist[0];
+		} else {
+			$frontVideo = null;
+		}
 
 		//store template output
 		ob_start();
@@ -926,3 +1037,17 @@ function simian_admin_init(){
 	wp_enqueue_style('simianadmincss',plugin_dir_url(__FILE__).'css/simian_admin.css');
 
 }
+
+
+function simian_fullscreen_buttons($buttons){
+
+	$buttons[] = 'separator';
+	$buttons['simianc'] = array(
+		'title' => __('Simian Connect'),
+		'onclick' => "tinyMCE.execCommand('go_simian2');",
+		'both' => true
+	);
+	return $buttons;
+
+}
+add_filter( 'wp_fullscreen_buttons', 'simian_fullscreen_buttons' );

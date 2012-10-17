@@ -26,8 +26,6 @@ $j(document).ready(function () {
 
         $j('#playlist .selected.hoverOver').removeClass('selected').removeClass('hoverOver');
 
-        console.log($thumb.find('.simian_content'));
-
         $thumb.find('.simian_content').addClass('selected').addClass('hoverOver');
 
         // get the main video player id
