@@ -201,7 +201,7 @@ function simian_get_reel($reel_id){
 		$responseArray['reel_id'] = (int) $return->reel->id;
 		$responseArray['reel_name'] = (string) $return->reel->name;
 		
-		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height,credits_director,credits_dop,credits_postp,media_type,media_description,media_tags,media_sort_order,media_status,media_notes) VALUES ";
+		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height,credits_director,credits_dop,credits_postp,credits_editor,media_type,media_description,media_tags,media_sort_order,media_status,media_notes) VALUES ";
 		foreach($return->media as $mediaitem){
 
 			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
@@ -223,6 +223,20 @@ function simian_get_reel($reel_id){
 			} else {
 				$postp = 'NULL';
 			}
+
+			if(isset($mediaitem->credits->editor)){
+				$edit = '\''.$mediaitem->credits->editor.'\'';
+			} else {
+				$edit = 'NULL';
+			}
+
+			//if(isset($mediaitem->credits->audio_mixer)){
+			//	echo "AM:".$mediaitem->credits->audio_mixer;
+			//}
+
+			//if(isset($mediaitem->credits->client)){
+			//	echo "Client:".$mediaitem->credits->client;
+			//}
 
 			if(isset($mediaitem->file_type)){
 				$mtype = '\''.$mediaitem->file_type.'\'';
@@ -260,7 +274,7 @@ function simian_get_reel($reel_id){
 				$mnote = 'NULL';
 			}
 
-			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',%9$s,%10$s,%11$s,%12$s,%13$s,%14$s,%15$s,%16$s,%17$s),',
+			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',%9$s,%10$s,%11$s,%12$s,%13$s,%14$s,%15$s,%16$s,%17$s,%18$s),',
 			$mediaitem->id,
 			$return->reel->id,
 			$mediaitem->title,
@@ -272,6 +286,7 @@ function simian_get_reel($reel_id){
 			$director,
 			$dop,
 			$postp,
+			$edit,
 			$mtype,
 			$mdesc,
 			$mtags,
@@ -286,7 +301,7 @@ function simian_get_reel($reel_id){
 			}
 		}
 		$compoundQuery = substr($compoundQuery, 0, -1);
-		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height), credits_director = VALUES(credits_director), credits_dop = VALUES(credits_dop), credits_postp = VALUES(credits_postp), media_type = VALUES(media_type), media_description = VALUES(media_description), media_tags = VALUES(media_tags), media_sort_order = VALUES(media_sort_order), media_status = VALUES(media_status), media_notes = VALUES(media_notes)";
+		$compoundQuery .= " ON DUPLICATE KEY UPDATE media_title = VALUES(media_title),media_thumb = VALUES(media_thumb),media_url = VALUES(media_url),media_mobile_url = VALUES(media_mobile_url), media_width = VALUES(media_width), media_height = VALUES(media_height), credits_director = VALUES(credits_director), credits_dop = VALUES(credits_dop), credits_postp = VALUES(credits_postp), credits_editor = VALUES(credits_editor), media_type = VALUES(media_type), media_description = VALUES(media_description), media_tags = VALUES(media_tags), media_sort_order = VALUES(media_sort_order), media_status = VALUES(media_status), media_notes = VALUES(media_notes)";
 
 		$wpdb->query($compoundQuery);
 		return $responseArray;
@@ -928,26 +943,36 @@ function simian_install(){
 
 	$mediaTableName = $wpdb->prefix . "simian_media";
 
-	$sql1 = "CREATE TABLE `" . $mediaTableName . "` (
-			  `unique_media_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-			  `media_id` mediumint(9) NOT NULL,
-			  `reel_id` mediumint(9) NOT NULL,
-			  `media_title` varchar(55) NOT NULL,
-			  `media_thumb` varchar(120) NOT NULL,
-			  `media_url` varchar(120) NOT NULL,
-			  `media_mobile_url` varchar(120) NOT NULL,
-			  `media_width` mediumint(9) NOT NULL,
-			  `media_height` mediumint(9) NOT NULL,
-			  PRIMARY KEY (`unique_media_id`),
-			  UNIQUE KEY `media_reel_link` (`media_id`,`reel_id`)
+	$sql1 = "CREATE TABLE " . $mediaTableName . " (
+			  unique_media_id int(10) unsigned NOT NULL AUTO_INCREMENT,
+			  media_id mediumint(9) NOT NULL,
+			  reel_id mediumint(9) NOT NULL,
+			  media_title varchar(55) NOT NULL,
+			  media_thumb varchar(120) NOT NULL,
+			  media_url varchar(120) NOT NULL,
+			  media_mobile_url varchar(120) NOT NULL,
+			  media_width mediumint(9) NOT NULL,
+			  media_height mediumint(9) NOT NULL,
+			  credits_director varchar(120) DEFAULT NULL,
+			  credits_dop varchar(120) DEFAULT NULL,
+			  credits_postp varchar(120) DEFAULT NULL,
+			  credits_editor varchar(120) DEFAULT NULL,
+			  media_type varchar(120) DEFAULT NULL,
+			  media_description varchar(120) DEFAULT NULL,
+			  media_tags varchar(120) DEFAULT NULL,
+			  media_sort_order mediumint(9) DEFAULT NULL,
+			  media_status varchar(120) DEFAULT NULL,
+			  media_notes varchar(120) DEFAULT NULL,
+			  PRIMARY KEY  (unique_media_id),
+			  UNIQUE KEY media_reel_link (media_id,reel_id)
 			);";
 
-	$sql2 = "CREATE TABLE `" . $reelTableName . "` (
-			  `reel_id` mediumint(9) NOT NULL,
-			  `reel_title` varchar(55) NOT NULL,
-			  `reel_freshness` datetime NOT NULL,
-			  `reel_time` datetime DEFAULT NULL,
-			  PRIMARY KEY (`reel_id`)
+	$sql2 = "CREATE TABLE " . $reelTableName . " (
+			  reel_id mediumint(9) NOT NULL,
+			  reel_title varchar(55) NOT NULL,
+			  reel_freshness datetime NOT NULL,
+			  reel_time datetime DEFAULT NULL,
+			  PRIMARY KEY  (reel_id)
 			);";
 
 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -987,6 +1012,16 @@ function simian_db_upgrade(){
 			  media_mobile_url varchar(120) NOT NULL,
 			  media_width mediumint(9) NOT NULL,
 			  media_height mediumint(9) NOT NULL,
+			  credits_director varchar(120) DEFAULT NULL,
+			  credits_dop varchar(120) DEFAULT NULL,
+			  credits_postp varchar(120) DEFAULT NULL,
+			  credits_editor varchar(120) DEFAULT NULL,
+			  media_type varchar(120) DEFAULT NULL,
+			  media_description varchar(120) DEFAULT NULL,
+			  media_tags varchar(120) DEFAULT NULL,
+			  media_sort_order mediumint(9) DEFAULT NULL,
+			  media_status varchar(120) DEFAULT NULL,
+			  media_notes varchar(120) DEFAULT NULL,
 			  PRIMARY KEY  (unique_media_id),
 			  UNIQUE KEY media_reel_link (media_id,reel_id)
 			);";
