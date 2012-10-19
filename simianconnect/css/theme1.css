@@ -1,2 +1,47 @@
-/* Custom CSS File for Theme 1
-Delete if not required */
+/* Custom CSS File for Theme 1 */
+#reel{
+width:640px;
+}
+#reel .current_video{
+width:640px;
+}
+#playlist{
+    float: left;
+    margin: 0;
+    padding: 8px 0 0 4px;
+    position: relative;
+}
+#playlist li {
+    float: left;
+    height: 143px;
+    list-style: none outside none;
+    margin: 0 10px 10px 0;
+    padding: 2px;
+    width: 143px;
+}
+#playlist li .simian_thumb{
+overflow: hidden;
+height:110px;
+width:147px;
+}
+#playlist li img{
+width: 100%;
+height:auto;
+}
+
+#playlist li:hover, #playlist .selected{
+background:#B4B4B4;
+}
+#playlist li h3{
+font-size:12px;
+color:#000;
+font-weight: normal;
+padding:0 0 5px;
+margin:0;
+    letter-spacing: 0.1em;
+    line-height: 1.3em;
+    text-transform: capitalize;
+}
+#playlist .simian_content{
+	padding: 0 5px;
+}

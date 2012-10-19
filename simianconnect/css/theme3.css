@@ -1,2 +1,31 @@
-/* Custom CSS File for Theme 3
-Delete if not required */
+/* Custom CSS File for Theme 3 */
+.cf:before,.cf:after {content:"";display:table;}
+.cf:after {clear:both;}
+.cf {zoom:1;}
+.reel {clear: both;}
+/* Detfaults */
+#reel .current_video{
+	width:80% !important;
+	float:left;
+}
+#reel .current_video .current_video_player{
+	width:100%;
+}
+#reel .current_video .current_video_player img{
+	width:100%;
+	height:auto;
+}
+.QTP {
+    display: block !important; 
+}
+#playlist{
+    float: right;
+    height: 340px;
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+    width: 20%;
+}
+#playlist li{
+	list-style: none;
+}

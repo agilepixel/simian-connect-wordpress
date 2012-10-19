@@ -12,10 +12,6 @@
 	</h2>
 	<?php endif; ?>
 
-	<?php $dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($frontVideo->media_width, $frontVideo->media_height), $atts); ?>
-
-	<div class="current_video" style="width:<?php echo $dim['width'] ?>px;">
-
 	<?php if($simian_options['video_title'] != false): ?>
 
 		<h3 class="current_video_title">
@@ -23,6 +19,12 @@
 		</h3>
 
 		<?php endif; ?>
+		
+	<?php $dim = parse_dimensions(array(get_option('simian_default_width'),get_option('simian_default_height')),array("width", "height"),array($frontVideo->media_width, $frontVideo->media_height), $atts); ?>
+
+	<div class="current_video" style="width:<?php echo $dim['width'] ?>px;">
+
+
 
 		<div class="current_video_player">
 
@@ -86,13 +88,13 @@
 
 			</div>
 
-			<div class="simian_content">
+			<?php /*<div class="simian_content">
 
 				<h3 class="thumb_title">
 				<?php echo $mediaitem->media_title ?>
 				</h3>
 
-			</div>
+			</div> */ ?>
 
 			<div class="cf"></div>
 		</li>

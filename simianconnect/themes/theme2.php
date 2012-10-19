@@ -78,21 +78,14 @@
 			<div class="simian_thumb">
 
 				<a href="<?php echo $simian_url . $mediaitem->media_url ?>"
-					rel="<?php echo $dom_id ?>"> <img
-					title="<?php echo $mediaitem->media_title ?>"
+					rel="<?php echo $dom_id ?>"><?php echo $mediaitem->media_title ?></a>
+
+			</div>
+
+			<div class="simian_content"><img title="<?php echo $mediaitem->media_title ?>"
 					src="<?php echo $simian_url. $mediaitem->media_thumb ?>"
 					width="<?php echo $thumb_dim['width'] ?>"
-					height="<?php echo $thumb_dim['height'] ?>" /> </a>
-
-			</div>
-
-			<div class="simian_content">
-
-				<h3 class="thumb_title">
-				<?php echo $mediaitem->media_title ?>
-				</h3>
-
-			</div>
+					height="<?php echo $thumb_dim['height'] ?>" /></div>
 
 			<div class="cf"></div>
 		</li>

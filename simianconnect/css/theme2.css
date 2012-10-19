@@ -1,2 +1,63 @@
-/* Custom CSS File for Theme 2
-Delete if not required */
+/* Custom CSS File for Theme 2 */
+.cf:before,.cf:after {content:"";display:table;}
+.cf:after {clear:both;}
+.cf {zoom:1;}
+.reel {clear: both;}
+/* Detfaults */
+
+#reel{
+width:640px;
+}
+#reel .current_video{
+width:640px;
+}
+#playlist{
+    float: left;
+    margin: 0;
+    padding: 8px 0 0 4px;
+    position: relative;
+}
+#playlist li {
+  float: left;
+  height: 106px;
+  list-style: none outside none;
+  margin: 0 10px 10px 0;
+  padding: 0;
+  position: relative;
+  width: 143px;
+}
+#playlist li .simian_content{
+overflow: hidden;
+height:110px;
+width:147px;
+}
+#playlist li .simian_content{
+position: relative;
+z-index: 1;
+}
+#playlist li img{
+width: 100%;
+height:auto;
+}
+#playlist .simian_thumb{
+	padding: 0 5px;
+}
+
+
+#playlist li .simian_thumb a{
+  background: url("../media/shadow.png") repeat scroll 0 0 transparent;
+  color: #FFFFFF;
+  display: none;
+  height: 87px;
+  left: 0;
+  line-height: 1.1em;
+  padding: 10px;
+  position: absolute;
+  text-decoration: none;
+  top: 0;
+  width: 124px;
+  z-index: 10;
+}
+#playlist li:hover .simian_thumb a{
+display:block;
+}
