@@ -31,6 +31,9 @@ add_action('wp_enqueue_scripts', 'simian_call_requires');
 
 add_action('wp_ajax_simian_ajax_get_reel', 'simian_ajax_get_reel');
 add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
+
+add_action('simian-connect_page_simian-cache-run','simian_jquery_ui_queue');
+
 add_shortcode( 'scompanyreel', 'simiancreel_tag_func' );
 add_shortcode( 'swebreel', 'simianwreel_tag_func' );
 register_activation_hook(__FILE__,'simian_install');
@@ -101,9 +104,11 @@ function simian_cache_page(){
 	if(!get_option('simian_client_company_id')||!get_option('simian_client_api_key')){
 		$html .= "<p id=\"simianCacheNotice\">Simian Connect must be <a href=\"".get_admin_url()."admin.php?page=simian_connect\">configured</a> first!</p>";
 	} else {
+		$html .= '<div class="simian-cache-range"></div>';
 		$html .= '<form id="simianCacheForm" method="post" action="#">';
-		$html .= '<input name="simianReelMax" type="text" id="simianReelMax" value="250" maxlength="3" class="regular-text">';
-		$html .= '<span class="description">Maximum Reel ID to search for.</span>';
+		$html .= '<span class="description">Reel ID cache range: </span>';
+		$html .= '<input name="simianReelMin" type="text" id="simianReelMin" maxlength="4" class="small-text"> &#45; ';
+		$html .= '<input name="simianReelMax" type="text" id="simianReelMax" maxlength="4" class="small-text">';
 		$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
 		$html .= '</form>';
 		$html .= '<p id="simianCacheStatus">&nbsp</p>';
@@ -380,6 +385,8 @@ function simian_client_config(){
 
 	if(isset($_POST['submit'])){
 
+		$_POST['simianName'] = str_replace('.gosimian.com', '', $_POST['simianName']);
+		
 		//API
 		$changes = admin_update_text("simianName","simian_client_company_id");
 		$changes = admin_update_text("simianAPI","simian_client_api_key");
@@ -1086,3 +1093,13 @@ function simian_fullscreen_buttons($buttons){
 
 }
 add_filter( 'wp_fullscreen_buttons', 'simian_fullscreen_buttons' );
+
+function simian_jquery_ui_queue(){
+
+	wp_enqueue_style('simian-jquery-ui-start','http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/start/jquery-ui.css');
+	
+	wp_enqueue_script('jquery-ui-slider'); 
+
+	wp_enqueue_script('simiancacheui',plugin_dir_url(__FILE__).'js/simian_admin_ui.js','jquery-ui-slider');
+
+}
