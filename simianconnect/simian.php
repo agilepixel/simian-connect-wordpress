@@ -171,7 +171,11 @@ function simian_get_reel($reel_id){
 
 	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com";
 
-	$ch = curl_init($simian_url . "/v2/api/simian/get_reel");
+	if(get_option('simian_client_v2') == 1){
+		$simian_url .= "/v2";
+	}
+
+	$ch = curl_init($simian_url . "/api/simian/get_reel");
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_id=".$reel_id."&reel_type=web_reels");
 	curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -344,6 +348,7 @@ function simian_settings_init() {
 	//API
 	add_option('simian_client_company_id','');
 	add_option('simian_client_api_key','');
+	add_option('simian_client_v2','0');
 	add_option('simian_cache_time','3600');
 
 	//Reel Defaults
@@ -388,6 +393,8 @@ function simian_client_config(){
 		$changes = admin_update_text("simianAPI","simian_client_api_key");
 		$changes = admin_update_text("simianTime","simian_cache_time",array("numeric","notempty"));
 
+		admin_update_checkbox("isV2","simian_client_v2");
+
 		//Skin Options
 		admin_update_text("simianTheme","simian_theme");
 
@@ -426,6 +433,10 @@ function simian_client_config(){
 
 	$html .= admin_setting_input("simianAPI","Simian API Key",get_option('simian_client_api_key'),
 		"Simian access key for XML API. Contact Simian support if not known.");
+
+	$html .= admin_setting_input("isV2","V2 API", checked( 1, get_option('simian_client_v2'), false ),
+		"Is your account activated for the older V2 api? If unsure, leave unchecked.",
+		"checkbox");
 
 	$html .= admin_setting_input("simianTime","Cache time",get_option('simian_cache_time'),
 		"Time (in minutes) that reel/media data is cached in the Wordpress DB for quick retrival.");
