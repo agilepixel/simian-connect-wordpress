@@ -191,11 +191,9 @@ function simian_get_reel($reel_id){
 
 		$responseArray = array();
 
-		$return->reel->name = str_replace("'", "\\'", $return->reel->name);
-
 		$reeltime = date("Y-m-d H:i:s",strtotime($return->reel->create_date));
 
-		$insertQuery = sprintf('INSERT INTO %1$s (reel_id,reel_title,reel_freshness,reel_time) VALUES (%2$d,\'%3$s\',NOW(),\'%4$s\') ON DUPLICATE KEY UPDATE reel_title = \'%3$s\', reel_freshness = NOW(), reel_time = \'%4$s\';' ,
+		$insertQuery = $wpdb->prepare('INSERT INTO %1$s (reel_id,reel_title,reel_freshness,reel_time) VALUES (%2$d,"%3$s",NOW(),"%4$s") ON DUPLICATE KEY UPDATE reel_title = "%3$s", reel_freshness = NOW(), reel_time = "%4$s";' ,
 		$wpdb->prefix . "simian_reels",
 		$return->reel->id,
 		$return->reel->name,
@@ -209,30 +207,28 @@ function simian_get_reel($reel_id){
 		$compoundQuery = "INSERT INTO ".$wpdb->prefix . "simian_media (media_id,reel_id,media_title,media_thumb,media_url,media_mobile_url,media_width,media_height,credits_director,credits_dop,credits_postp,credits_editor,media_type,media_description,media_tags,media_sort_order,media_status,media_notes) VALUES ";
 		foreach($return->media as $mediaitem){
 
-			$mediaitem->title = str_replace("'", "\\'", $mediaitem->title);
-
 			if(isset($mediaitem->credits->director)){
-				$director = '\''.$mediaitem->credits->director.'\'';
+				$director = $mediaitem->credits->director;
 			} else {
-				$director = 'NULL';
+				$director = '';
 			}
 
 			if(isset($mediaitem->credits->director_of_photography)){
-				$dop = '\''.$mediaitem->credits->director_of_photography.'\'';
+				$dop = $mediaitem->credits->director_of_photography;
 			} else {
-				$dop = 'NULL';
+				$dop = '';
 			}
 
 			if(isset($mediaitem->credits->post_production)){
-				$postp = '\''.$mediaitem->credits->post_production.'\'';
+				$postp = $mediaitem->credits->post_production;
 			} else {
-				$postp = 'NULL';
+				$postp = '';
 			}
 
 			if(isset($mediaitem->credits->editor)){
-				$edit = '\''.$mediaitem->credits->editor.'\'';
+				$edit = $mediaitem->credits->editor;
 			} else {
-				$edit = 'NULL';
+				$edit = '';
 			}
 
 			//if(isset($mediaitem->credits->audio_mixer)){
@@ -244,61 +240,61 @@ function simian_get_reel($reel_id){
 			//}
 
 			if(isset($mediaitem->file_type)){
-				$mtype = '\''.$mediaitem->file_type.'\'';
+				$mtype = $mediaitem->file_type;
 			} else {
-				$mtype = 'NULL';
+				$mtype = '';
 			}
 
 			if(isset($mediaitem->description)){
-				$mdesc = '\''.$mediaitem->description.'\'';
+				$mdesc = $mediaitem->description;
 			} else {
-				$mdesc = 'NULL';
+				$mdesc = '';
 			}
 
 			if(isset($mediaitem->tags)){
-				$mtags = '\''.$mediaitem->tags.'\'';
+				$mtags = $mediaitem->tags;
 			} else {
-				$mtags = 'NULL';
+				$mtags = '';
 			}
 
 			if(isset($mediaitem->sort_order)){
-				$msort = '\''.$mediaitem->sort_order.'\'';
+				$msort = $mediaitem->sort_order;
 			} else {
-				$msort = 'NULL';
+				$msort = '';
 			}
 
 			if(isset($mediaitem->status)){
-				$mstat = '\''.$mediaitem->status.'\'';
+				$mstat = $mediaitem->status;
 			} else {
-				$mstat = 'NULL';
+				$mstat = '';
 			}
 
 			if(isset($mediaitem->notes)){
-				$mnote = '\''.$mediaitem->notes.'\'';
+				$mnote = $mediaitem->notes;
 			} else {
-				$mnote = 'NULL';
+				$mnote = '';
 			}
 
-			$insertMedia = sprintf('(%1$d,%2$d,\'%3$s\',\'%4$s\',\'%5$s\',\'%6$s\',\'%7$s\',\'%8$s\',%9$s,%10$s,%11$s,%12$s,%13$s,%14$s,%15$s,%16$s,%17$s,%18$s),',
-			$mediaitem->id,
-			$return->reel->id,
-			$mediaitem->title,
-			strip_url($mediaitem->thumbnail,$simian_url. "/assets/"),
-			strip_url($mediaitem->media_file,$simian_url. "/assets/"),
-			strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"),
-			$mediaitem->media_width,
-			$mediaitem->media_height,
-			$director,
-			$dop,
-			$postp,
-			$edit,
-			$mtype,
-			$mdesc,
-			$mtags,
-			$msort,
-			$mstat,
-			$mnote
-			);
+			$insertMedia = $wpdb->prepare('(%1$d,%2$d,"%3$s","%4$s","%5$s","%6$s","%7$s","%8$s","%9$s","%10$s","%11$s","%12$s","%13$s","%14$s","%15$s","%16$s","%17$s","%18$s"),',
+					$mediaitem->id,
+					$return->reel->id,
+					$mediaitem->title,
+					strip_url($mediaitem->thumbnail,$simian_url. "/assets/"),
+					strip_url($mediaitem->media_file,$simian_url. "/assets/"),
+					strip_url($mediaitem->media_file_mobile,$simian_url. "/assets/"),
+					$mediaitem->media_width,
+					$mediaitem->media_height,
+					$director,
+					$dop,
+					$postp,
+					$edit,
+					$mtype,
+					$mdesc,
+					$mtags,
+					$msort,
+					$mstat,
+					$mnote
+					);
 			$compoundQuery .= $insertMedia;
 
 			if(!isset($responseArray['reel_thumb'])){
