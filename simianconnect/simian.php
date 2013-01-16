@@ -10,7 +10,7 @@
  */
 
 /*
- Copyright (c) 2012 The Code Pharmacy
+ Copyright (c) 2013 The Code Pharmacy
  All Rights Reserved.
  It is unlawful to reproduce, copy or otherwise reuse this software
  without express written permission of the author
@@ -30,6 +30,7 @@ add_action('init', 'simian_addbuttons');
 add_action('wp_enqueue_scripts', 'simian_call_requires');
 
 add_action('wp_ajax_simian_ajax_get_reel', 'simian_ajax_get_reel');
+add_action('wp_ajax_simian_ajax_get_reel_list', 'simian_ajax_get_reel_list');
 add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
 
 add_action('simian-connect_page_simian-cache-run','simian_jquery_ui_queue');
@@ -164,6 +165,21 @@ function simian_ajax_select_reel() {
 	die();
 }
 
+function simian_get_reels(){
+	$simian_url = "http://".get_option('simian_client_company_id').".gosimian.com";
+
+	if(get_option('simian_client_v2') == 1){
+		$simian_url .= "/v2";
+	}
+
+	$ch = curl_init($simian_url . "/api/simian/get_reel_list");
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, "auth_token=".get_option('simian_client_api_key')."&reel_type=web_reels");
+	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	$response = curl_exec($ch);
+	echo $response;
+}
 
 function simian_get_reel($reel_id){
 
@@ -318,6 +334,13 @@ function strip_url($string, $url){
 
 	return str_ireplace($url,"",$string);
 
+}
+
+function simian_ajax_get_reel_list(){
+	$jsonreturn = array();
+	$reels = simian_get_reels();
+	echo json_encode($jsonreturn);
+	die();
 }
 
 function simian_ajax_get_reel() {

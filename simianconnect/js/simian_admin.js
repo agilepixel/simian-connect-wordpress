@@ -55,6 +55,21 @@ function($) {
         return false;
     });
 
+    /*
+    var data = {
+        action: "simian_ajax_get_reel_list"
+    };
+
+    jQuery.ajax({
+        type: "POST",
+        url: ajaxurl,
+        data: data,
+        dataType: "json",
+        success: function(response) {
+            console.log(response);
+        }
+    });
+    */
 });
 
 function cache_reel_adhoc() {
