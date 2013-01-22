@@ -55,7 +55,15 @@ function($) {
         return false;
     });
 
-    /*
+    $('#simianautoscan').click(function() {
+        cache_reel_intelligent();
+        return false;
+    });
+
+});
+
+function cache_reel_intelligent() {
+    jQuery('#simianCacheStatus').html("Looking up available reels...");
     var data = {
         action: "simian_ajax_get_reel_list"
     };
@@ -66,31 +74,34 @@ function($) {
         data: data,
         dataType: "json",
         success: function(response) {
-            console.log(response);
+            if(response.status == "OK") {
+                cache_reel_fixed(response.details);
+            } else {
+                jQuery('#simianCacheStatus').html("Could not look up reels, please try a manual search");
+            }
         }
     });
-    */
-});
-
-function cache_reel_adhoc() {
-    //TODO currently grabs arbitary number of reels to start someone off - needs to be smarter
-    cache_reel(1, 50, true);
 }
 
-function cache_reel_new() {
-    var lastID = parseInt(jQuery('.reel_select li').first().children('a').attr('id').replace('reel_id_', ''), 10);
-    cache_reel(lastID + 1, lastID + 50, true);
+function cache_reel_fixed(idObject) {
+    jQuery.each(idObject, function() {
+        cache_reel(this.id, this.id, false);
+    });
 }
 
 function cache_reel(reelid, maxid, morebutton) {
 
-    jQuery('#simianCacheStatus').html("Looking for reel " + reelid + "/" + maxid);
+    if(reelid == maxid) {
+        jQuery('#simianCacheStatus').html("Looking for reel " + reelid);
+    } else {
+        jQuery('#simianCacheStatus').html("Looking for reel " + reelid + "/" + maxid);
+    }
+
 
     var data = {
         action: "simian_ajax_get_reel",
         reel_id: reelid
     };
-
     jQuery.ajax({
         type: "POST",
         url: ajaxurl,
@@ -99,8 +110,12 @@ function cache_reel(reelid, maxid, morebutton) {
         success: function(response) {
             if(response.status) {
                 if(response.status == "OK" && response.details.reel_id !== 0 && jQuery('.reel_select').length > 0) {
-                    var newReel = '<li><a href="#" id="reel_id_' + response.details.reel_id + '"><img src="' + response.details.reel_thumb + '"></a><h4>' + response.details.reel_id + '</h4><p class="reel_title">' + response.details.reel_name + '</p></li>';
-                    jQuery('.reel_select').prepend(newReel);
+                    if(jQuery('reel_id_' + response.details.reel_id).length === 0) {
+                        var newReel = '<li><a href="#" id="reel_id_' + response.details.reel_id + '"><img src="' + response.details.reel_thumb + '"></a><h4>' + response.details.reel_id + '</h4><p class="reel_title">' + response.details.reel_name + '</p></li>';
+                        jQuery('.reel_select').prepend(newReel);
+                    } else {
+                        jQuery('reel_id_' + response.details.reel_id).html('<img src="' + response.details.reel_thumb + '">');
+                    }
                 }
                 if(reelid + 1 <= maxid && jQuery('#simianCacheStatus').length > 0) {
                     cache_reel(reelid + 1, maxid, morebutton);

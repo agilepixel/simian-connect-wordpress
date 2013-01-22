@@ -105,14 +105,19 @@ function simian_cache_page(){
 	if(!get_option('simian_client_company_id')||!get_option('simian_client_api_key')){
 		$html .= "<p id=\"simianCacheNotice\">Simian Connect must be <a href=\"".get_admin_url()."admin.php?page=simian_connect\">configured</a> first!</p>";
 	} else {
+		$html .= '<p id="simianCacheStatus">&nbsp</p>';
+		$html .= '<h2>Automatic</h2>';
+		$html .= '<p>Recommended in most cases</p>';
+		$html .= '<p class="autosearch"><button type="button" id="simianautoscan" class="button">Scan for Reels</button></p>';
+		$html .= '<h2>Manual</h2>';
+		$html .= '<p>Use if need to import specific IDs or automatic caching fails</p>';
 		$html .= '<div class="simian-cache-range"></div>';
 		$html .= '<form id="simianCacheForm" method="post" action="#">';
 		$html .= '<span class="description">Reel ID cache range: </span>';
 		$html .= '<input name="simianReelMin" type="text" id="simianReelMin" maxlength="4" class="small-text"> &#45; ';
 		$html .= '<input name="simianReelMax" type="text" id="simianReelMax" maxlength="4" class="small-text">';
 		$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
-		$html .= '</form>';
-		$html .= '<p id="simianCacheStatus">&nbsp</p>';
+		$html .= '</form>';		
 	}
 
 	echo $html;
@@ -137,19 +142,12 @@ function simian_ajax_select_reel() {
 
 	$reels = $wpdb->get_results(sprintf('SELECT r.reel_id, r.reel_title, r.reel_time, m.media_thumb from %1$s r LEFT JOIN %2$s m ON r.reel_id = m.reel_id GROUP BY r.reel_id ORDER BY r.reel_time DESC;',$wpdb->prefix . "simian_reels",$wpdb->prefix . "simian_media"));
 
-	if(count($reels)==0){
-		$html .= "<p id=\"simianCacheNotice\">No Reels Found. Automatically filling cache...</p>";
-		$html .= "<p id=\"simianCacheStatus\">&nbsp;</p>";
-		$html .= "<script type=\"text/javascript\">";
-		$html .= "cache_reel_adhoc()";
-		$html .= "</script>";
-	} else {
-		$html .= "<p id=\"simianCacheNotice\">Checking for new reels...</p>";
-		$html .= "<p id=\"simianCacheStatus\">&nbsp;</p>";
-		$html .= "<script type=\"text/javascript\">";
-		$html .= "cache_reel_new()";
-		$html .= "</script>";
-	}
+	$html .= "<p id=\"simianCacheNotice\">Checking for new reels...</p>";
+	$html .= "<p id=\"simianCacheStatus\">&nbsp;</p>";
+	$html .= "<script type=\"text/javascript\">";
+	$html .= "cache_reel_intelligent()";
+	$html .= "</script>";
+	
 
 	$html .= "<ul class=\"reel_select\">";
 
@@ -178,7 +176,20 @@ function simian_get_reels(){
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	$response = curl_exec($ch);
-	echo $response;
+	libxml_use_internal_errors(true);
+	if(!$return = simplexml_load_string($response)){
+
+		return false;
+
+	} else {
+
+			$reelarray = array();
+			foreach($return->web_reels as $reel){
+				$reelarray[] = array("id" => (int) $reel->id);
+			}
+			return $reelarray;
+
+	}
 }
 
 function simian_get_reel($reel_id){
@@ -338,8 +349,11 @@ function strip_url($string, $url){
 
 function simian_ajax_get_reel_list(){
 	$jsonreturn = array();
-	$reels = simian_get_reels();
-	echo json_encode($jsonreturn);
+	if($reels = simian_get_reels()){
+		echo json_encode(array("status"=>"OK","details"=>$reels));
+	} else {
+		echo json_encode(array("status"=>"XML ERROR"));
+	}
 	die();
 }
 
