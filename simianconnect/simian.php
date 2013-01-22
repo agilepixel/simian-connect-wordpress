@@ -32,6 +32,7 @@ add_action('wp_enqueue_scripts', 'simian_call_requires');
 add_action('wp_ajax_simian_ajax_get_reel', 'simian_ajax_get_reel');
 add_action('wp_ajax_simian_ajax_get_reel_list', 'simian_ajax_get_reel_list');
 add_action('wp_ajax_simian_select_reel', 'simian_ajax_select_reel');
+add_action('wp_ajax_simian_ajax_clear_cache', 'simian_ajax_clear_cache');
 
 add_action('simian-connect_page_simian-cache-run','simian_jquery_ui_queue');
 
@@ -117,10 +118,30 @@ function simian_cache_page(){
 		$html .= '<input name="simianReelMin" type="text" id="simianReelMin" maxlength="4" class="small-text"> &#45; ';
 		$html .= '<input name="simianReelMax" type="text" id="simianReelMax" maxlength="4" class="small-text">';
 		$html .= '<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="Start Caching"></p>';
-		$html .= '</form>';		
+		$html .= '</form>';
+		$html .= '<h2>Clear Cache</h2>';
+		$html .= '<p>If you are experiencing viewing videos on your frontend, or have recently changed api details it is recommended you completely clear your reel cache</p>';
+		$html .= '<p><button type="button" id="simianclearcache" class="button">Clear Cache</button></p>';
 	}
 
 	echo $html;
+
+}
+
+function simian_ajax_clear_cache() {
+
+	global $wpdb;
+
+	$clearQuery = "TRUNCATE " . $wpdb->prefix . "simian_media;";
+	$clearQuery2 = "TRUNCATE " . $wpdb->prefix . "simian_reels;";
+
+	if($wpdb->query($clearQuery)&&$wpdb->query($clearQuery2)){
+		echo json_encode(array("status"=>"OK"));
+	} else {
+		echo json_encode(array("status"=>"Failed"));
+	}
+
+	die();
 
 }
 
@@ -152,6 +173,7 @@ function simian_ajax_select_reel() {
 	$html .= "<ul class=\"reel_select\">";
 
 	foreach ($reels as $reel){
+		$reel->media_thumb = str_replace($simian_url, '', $reel->media_thumb);
 		$html .= "<li><a id=\"reel_id_".$reel->reel_id."\" href=\"#\"><img src=\"" .$simian_url .  $reel->media_thumb . "\" /></a><h4>".$reel->reel_id."</h4><p class=\"reel_title\">".$reel->reel_title."</p></li>";
 	}
 
@@ -187,6 +209,7 @@ function simian_get_reels(){
 			foreach($return->web_reels as $reel){
 				$reelarray[] = array("id" => (int) $reel->id);
 			}
+			sort($reelarray);
 			return $reelarray;
 
 	}
@@ -809,7 +832,7 @@ function wp_get_playlist($reel_id){
 
 	global $wpdb;
 
-	$playlist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_thumb, media_width, media_height FROM %1s WHERE reel_id = %2d AND media_status = 'active' ORDER BY media_sort_order",$wpdb->prefix . "simian_media",$reel_id));
+	$playlist = $wpdb->get_results(sprintf("SELECT media_id, media_title, media_url, media_mobile_url, media_thumb, media_width, media_height FROM %1s WHERE reel_id = %2d AND media_status = 'active' ORDER BY media_sort_order",$wpdb->prefix . "simian_media",$reel_id));
 
 	return $playlist;
 
@@ -857,6 +880,12 @@ function simian_load_reel($reel_id, $type="web", $atts){
 		$dom_id = "simreel_" . $reel_id;
 		$playlist = wp_get_playlist($reel_id);
 		$chosenTheme = get_option('simian_theme');
+
+		foreach($playlist as $mediaitem){
+			$mediaitem->media_thumb = str_replace($simian_url, '', $mediaitem->media_thumb);
+			$mediaitem->media_url = str_replace($simian_url, '', $mediaitem->media_url);
+			$mediaitem->media_mobile_url = str_replace($simian_url, '', $mediaitem->media_mobile_url);
+		}
 
 		//look for usable template file - first
 		if($chosenTheme == "user_custom" && file_exists(get_template_directory() . '/simian/custom.php')){
