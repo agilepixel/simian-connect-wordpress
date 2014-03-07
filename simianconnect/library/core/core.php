@@ -6,29 +6,30 @@
  * @copyright   Copyright (c) 2011 The Code Pharmacy (http://thecodepharmacy.co.uk/)
  * @author 		Henry Allsuch <henry@thecodepharmacy.co.uk>
  */
-class core_core {
+class core_core
+{
+    public $html = "";
+    public $cf = null;
 
-	public $html = "";
-	public $cf = null;
-	
-	function __construct() {
+    protected $wpdb;
 
-		global $cf;
-		
-		$this->cf = $cf;		
+    public function __construct()
+    {
+        global $cf;
 
-	}
-	
-	/**
-	* Make the global wordpress db classes accessible through $this in any class
-	*/
-	public function initDb(){
-	
-		global $wpdb;
-		
-		$this->wpdb = $wpdb;
-	
-	}
+        $this->cf = $cf;
+
+    }
+
+    /**
+    * Make the global wordpress db classes accessible through $this in any class
+    */
+    public function initDb()
+    {
+        global $wpdb;
+
+        $this->wpdb = $wpdb;
+
+    }
 
 }
-?>
