@@ -447,62 +447,62 @@ function simian_client_config()
         $_POST['simianName'] = str_replace('.gosimian.com', '', $_POST['simianName']);
 
         //API
-        if (admin_update_text("simianName","simian_client_company_id") {
+        if (admin_update_text("simianName","simian_client_company_id")) {
             $changes = true;
         }
-        if (admin_update_text("simianAPI","simian_client_api_key") {
+        if (admin_update_text("simianAPI","simian_client_api_key")) {
             $changes = true;
         }
-        if (admin_update_text("simianTime","simian_cache_time",array("numeric","notempty")) {
+        if (admin_update_text("simianTime","simian_cache_time",array("numeric","notempty"))) {
             $changes = true;
         }
 
-        if (admin_update_checkbox("isV2","simian_client_v2") {
+        if (admin_update_checkbox("isV2","simian_client_v2")) {
             $changes = true;
         }
 
         //Skin Options
-        if (admin_update_text("simianTheme","simian_theme") {
+        if (admin_update_text("simianTheme","simian_theme")) {
             $changes = true;
         }
 
         //Reel Defaults
-        if (admin_update_checkbox("showTitle","simian_default_show_title") {
+        if (admin_update_checkbox("showTitle","simian_default_show_title")) {
             $changes = true;
         }
-        if (admin_update_checkbox("showPlaylist","simian_default_show_playlist") {
+        if (admin_update_checkbox("showPlaylist","simian_default_show_playlist")) {
             $changes = true;
         }
-        if (admin_update_checkbox("autoPlayPlaylist","simian_default_autoplay") {
+        if (admin_update_checkbox("autoPlayPlaylist","simian_default_autoplay")) {
             $changes = true;
         }
-        if (admin_update_checkbox("useJW","simian_use_jw") {
+        if (admin_update_checkbox("useJW","simian_use_jw")) {
             $changes = true;
         }
 
         //Current Video Defaults
-        if (admin_update_checkbox("showNowPlayingTitle","simian_default_show_current_title") {
+        if (admin_update_checkbox("showNowPlayingTitle","simian_default_show_current_title")) {
             $changes = true;
         }
 
-        if (admin_update_text("simianDefaultWidth","simian_default_width",array("numeric","notempty")) {
+        if (admin_update_text("simianDefaultWidth","simian_default_width",array("numeric","notempty"))) {
             $changes = true;
         }
-        if (admin_update_text("simianDefaultHeight","simian_default_height",array("numeric","notempty")) {
+        if (admin_update_text("simianDefaultHeight","simian_default_height",array("numeric","notempty"))) {
             $changes = true;
         }
-        if (admin_update_checkbox("showPoster","simian_default_showposters") {
+        if (admin_update_checkbox("showPoster","simian_default_showposters")) {
             $changes = true;
         }
 
         //Playlist Defaults
-        if (admin_update_checkbox("simianDefaultPlaylistTitles","simian_default_playlist_titles") {
+        if (admin_update_checkbox("simianDefaultPlaylistTitles","simian_default_playlist_titles")) {
             $changes = true;
         }
-        if (admin_update_text("simianDefaultThumbnailWidth","simian_default_thumb_width",array("numeric","notempty")) {
+        if (admin_update_text("simianDefaultThumbnailWidth","simian_default_thumb_width",array("numeric","notempty"))) {
             $changes = true;
         }
-        if (admin_update_text("simianDefaultThumbnailHeight","simian_default_thumb_height",array("numeric","notempty")) {
+        if (admin_update_text("simianDefaultThumbnailHeight","simian_default_thumb_height",array("numeric","notempty"))) {
             $changes = true;
         }
 
