@@ -3,8 +3,8 @@
  * Simian Connect
  *
  * @package     Core
- * @copyright   Copyright (c) 2011 The Code Pharmacy (http://thecodepharmacy.co.uk/)
- * @author 		Henry Allsuch <henry@thecodepharmacy.co.uk>
+ * @copyright   Copyright (c) 2014 Agile Pixel (http://agilepixel.io/)
+ * @author 		Henry Allsuch <henry@agilepixel.io>
  */
 class core_core
 {

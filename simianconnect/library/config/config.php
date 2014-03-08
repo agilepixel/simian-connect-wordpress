@@ -3,9 +3,9 @@
  * Simian Connect
  *
  * @package     config_config
- * @copyright   Copyright (c) 2011 The Code Pharmacy (http://thecodepharmacy.co.uk/)
- * @author 		Henry Allsuch <henry@thecodepharmacy.co.uk>
- * @author 		Richard Brown <richard@thecodepharmacy.co.uk>
+ * @copyright   Copyright (c) 2014 Agile Pixel (http://agilepixel.io/)
+ * @author 		Henry Allsuch <henry@agilepixel.io>
+ * @author 		Richard Brown <richard@agilepixel.io>
  */
 
 class config

@@ -66,9 +66,9 @@
         getInfo: function () {
             return {
                 longname: 'Simian plugin',
-                author: 'The Code Pharmacy',
-                authorurl: 'http://thecodepharmacy.co.uk',
-                infourl: 'http://thecodepharmacy.co.uk',
+                author: 'Agile Pixel',
+                authorurl: 'http://agilepixel.io',
+                infourl: 'http://agilepixel.io',
                 version: "0.5"
             };
         }

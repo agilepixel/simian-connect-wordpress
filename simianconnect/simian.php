@@ -1,19 +1,13 @@
 <?php
 /*
  Plugin Name: Simian Connect
- Plugin URI: http://thecodepharmacy.co.uk/simian-connect/
+ Plugin URI: http://agilepixel.io
  Description: Access all your Simian&trade; media and easily add them to your posts. Uses the Simian&trade; XML API.
- Version: 0.6
- Author: The Code Pharmacy
- Author URI: http://thecodepharmacy.co.uk/
- License: Proprietary
- */
-
-/*
- Copyright (c) 2013 The Code Pharmacy
- All Rights Reserved.
- It is unlawful to reproduce, copy or otherwise reuse this software
- without express written permission of the author
+ Version: 0.7
+ Author: Agile Pixel
+ Author URI: http://agilepixel.io
+ License: GPL2
+ License URI: license.txt
  */
 
 require_once 'library/config/config.php';
@@ -678,7 +672,11 @@ function admin_update_checkbox($input,$option)
             $status = update_option($option, 0);
     }
 
-    return $status;
+    if ($status) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 function admin_setting_input_td($id, $label, $value, $desc,$type="text")
