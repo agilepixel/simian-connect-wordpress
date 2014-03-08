@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: code418
+Contributors: agilepixel
 Tags: simian
 Requires at least: 3.4
 Tested up to: 3.5
