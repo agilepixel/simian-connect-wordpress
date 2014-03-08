@@ -1,7 +1,7 @@
 <?php
 /*
  Plugin Name: Simian Connect
- Plugin URI: http://agilepixel.io
+ Plugin URI: https://github.com/agilepixel/simian-connect-wordpress
  Description: Access all your Simian&trade; media and easily add them to your posts. Uses the Simian&trade; XML API.
  Version: 0.7
  Author: Agile Pixel
@@ -12,7 +12,7 @@
 
 require_once 'library/config/config.php';
 
-$simian_connect_version = "0.6";
+$simian_connect_version = "0.7";
 add_action('plugins_loaded', 'simian_update_db_check');
 
 add_action('admin_init','simian_admin_init');
