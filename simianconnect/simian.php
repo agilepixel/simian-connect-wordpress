@@ -665,11 +665,15 @@ function admin_update_checkbox($input,$option)
     $status = false;
     switch (isset($_POST[$input])) {
         case true:
-            $status = update_option($option, 1);
+            if(update_option($option, 1)){
+                $status = true;
+            }
             break;
         case false:
         default:
-            $status = update_option($option, 0);
+            if(update_option($option, 0)){
+                $status = true;
+            }
     }
 
     if ($status) {
